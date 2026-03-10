@@ -1,0 +1,4424 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0e1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="الهرم للاتصالات">
+<title>الهرم للاتصالات والصيانة</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=Tajawal:wght@300;400;500;700;900&display=swap');
+
+  :root {
+    --bg-dark: #0a0e1a;
+    --bg-card: #111827;
+    --bg-card2: #1a2235;
+    --accent: #00d4aa;
+    --accent2: #0066ff;
+    --accent3: #ff6b35;
+    --text-main: #e8edf5;
+    --text-muted: #6b7a99;
+    --text-dim: #8892a4;
+    --border: #1e2d4a;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+    --sidebar-w: 240px;
+    --header-h: 64px;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Cairo', 'Tajawal', sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-main);
+    min-height: 100vh;
+    overflow-x: hidden;
+    direction: rtl;
+  }
+
+  /* ===== SIDEBAR ===== */
+  #sidebar {
+    position: fixed;
+    top: 0; right: 0;
+    width: var(--sidebar-w);
+    height: 100vh;
+    background: var(--bg-card);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    overflow: hidden;
+  }
+
+  .sidebar-logo {
+    padding: 20px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1.3;
+  }
+  .logo-text span { color: var(--accent); font-size: 11px; font-weight: 400; }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 12px 8px;
+    overflow-y: auto;
+  }
+
+  .nav-section-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 8px 12px 4px;
+    margin-top: 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text-dim);
+    margin-bottom: 2px;
+    border: 1px solid transparent;
+  }
+
+  .nav-item:hover {
+    background: var(--bg-card2);
+    color: var(--text-main);
+  }
+
+  .nav-item.active {
+    background: linear-gradient(135deg, rgba(0,212,170,0.15), rgba(0,102,255,0.1));
+    color: var(--accent);
+    border-color: rgba(0,212,170,0.2);
+  }
+
+  .nav-item .icon { font-size: 18px; width: 22px; text-align: center; }
+
+  .sidebar-footer {
+    padding: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  /* ===== MAIN ===== */
+  #main {
+    margin-right: var(--sidebar-w);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #header {
+    height: var(--header-h);
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .header-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .header-date {
+    background: var(--bg-card2);
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+  }
+
+  #content {
+    flex: 1;
+    padding: 28px;
+    overflow-y: auto;
+  }
+
+  /* ===== PAGES ===== */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ===== STATS GRID ===== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 4px; height: 100%;
+  }
+
+  .stat-card.green::before { background: var(--success); }
+  .stat-card.blue::before { background: var(--info); }
+  .stat-card.orange::before { background: var(--warning); }
+  .stat-card.red::before { background: var(--danger); }
+  .stat-card.teal::before { background: var(--accent); }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .stat-value {
+    font-size: 26px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-card.green .stat-value { color: var(--success); }
+  .stat-card.blue .stat-value { color: var(--info); }
+  .stat-card.orange .stat-value { color: var(--warning); }
+  .stat-card.red .stat-value { color: var(--danger); }
+  .stat-card.teal .stat-value { color: var(--accent); }
+
+  .stat-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .stat-icon {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    font-size: 32px;
+    opacity: 0.08;
+  }
+
+  /* ===== GRID ===== */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+  /* ===== FORMS ===== */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-dim);
+  }
+
+  input, select, textarea {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text-main);
+    font-family: 'Cairo', sans-serif;
+    font-size: 13.5px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    width: 100%;
+    direction: rtl;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,212,170,0.1);
+  }
+
+  textarea { resize: vertical; min-height: 80px; }
+
+  select option { background: var(--bg-card); }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    direction: rtl;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #00b894);
+    color: #0a0e1a;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,212,170,0.4); }
+
+  .btn-secondary {
+    background: var(--bg-card2);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-danger {
+    background: rgba(239,68,68,0.15);
+    color: var(--danger);
+    border: 1px solid rgba(239,68,68,0.3);
+  }
+  .btn-danger:hover { background: var(--danger); color: white; }
+
+  .btn-success {
+    background: rgba(16,185,129,0.15);
+    color: var(--success);
+    border: 1px solid rgba(16,185,129,0.3);
+  }
+  .btn-success:hover { background: var(--success); color: white; }
+
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-lg { padding: 13px 28px; font-size: 15px; }
+
+  /* ===== TABLE ===== */
+  .table-wrap { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead th {
+    background: var(--bg-card2);
+    padding: 12px 14px;
+    text-align: right;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 12px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(30,45,74,0.5);
+    transition: background 0.15s;
+  }
+
+  tbody tr:hover { background: rgba(26,34,53,0.8); }
+
+  tbody td {
+    padding: 11px 14px;
+    color: var(--text-main);
+    vertical-align: middle;
+  }
+
+  /* ===== BADGES ===== */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 600;
+    gap: 4px;
+  }
+
+  .badge-success { background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+  .badge-danger { background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
+  .badge-warning { background: rgba(245,158,11,0.15); color: var(--warning); border: 1px solid rgba(245,158,11,0.3); }
+  .badge-info { background: rgba(59,130,246,0.15); color: var(--info); border: 1px solid rgba(59,130,246,0.3); }
+  .badge-teal { background: rgba(0,212,170,0.15); color: var(--accent); border: 1px solid rgba(0,212,170,0.3); }
+
+  /* ===== SEARCH BAR ===== */
+  .search-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .search-input-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .search-input-wrap input {
+    padding-right: 36px;
+  }
+
+  .search-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 14px;
+    pointer-events: none;
+  }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    width: 90%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: scale(0.95);
+    transition: transform 0.2s;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+
+  .modal-overlay.open .modal {
+    transform: scale(1);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-title {
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  .modal-close {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    width: 32px; height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .modal-close:hover { color: var(--danger); border-color: var(--danger); }
+
+  .modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ===== TOAST ===== */
+  #toast-container {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .toast {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 13.5px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: var(--shadow);
+    animation: slideUp 0.3s ease;
+    min-width: 240px;
+  }
+
+  .toast.success { border-right: 3px solid var(--success); }
+  .toast.error { border-right: 3px solid var(--danger); }
+  .toast.info { border-right: 3px solid var(--info); }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  /* ===== SECTION HEADER ===== */
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  /* ===== DIVIDER ===== */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 20px 0;
+  }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  /* ===== EMPTY STATE ===== */
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-muted);
+  }
+
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+  .empty-state p { font-size: 14px; }
+
+  /* ===== RADIO GROUP ===== */
+  .radio-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .radio-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+  }
+
+  .radio-option input { width: auto; }
+  .radio-option:has(input:checked) {
+    border-color: var(--accent);
+    background: rgba(0,212,170,0.1);
+    color: var(--accent);
+  }
+
+  /* ===== DASHBOARD ACTIVITY ===== */
+  .activity-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(30,45,74,0.5);
+  }
+
+  .activity-item:last-child { border-bottom: none; }
+
+  .activity-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .activity-text { flex: 1; font-size: 13px; }
+  .activity-time { font-size: 11px; color: var(--text-muted); }
+
+  /* ===== PRINT ===== */
+  @media print {
+    body { background: white; color: black; }
+    #sidebar, #header { display: none; }
+    #main { margin: 0; }
+    #content { padding: 0; }
+    .btn, .search-bar, .section-header .btn { display: none; }
+    .card { border: 1px solid #ccc; box-shadow: none; background: white; }
+    table, th, td { color: black; border-color: #ccc; }
+    thead th { background: #f5f5f5; }
+    .badge { border: 1px solid #ccc; color: black; }
+  }
+
+  /* ===== INVOICE ===== */
+  #invoice-print {
+    display: none;
+    padding: 40px;
+    font-family: 'Cairo', sans-serif;
+    direction: rtl;
+  }
+
+  #invoice-print.show { display: block; }
+
+  .invoice-header {
+    text-align: center;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #333;
+  }
+
+  .invoice-shop-name {
+    font-size: 28px;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+
+  .invoice-shop-info {
+    font-size: 13px;
+    color: #666;
+  }
+
+  .invoice-title {
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+    margin: 20px 0;
+    color: #333;
+  }
+
+  .invoice-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+  }
+
+  .invoice-table th, .invoice-table td {
+    border: 1px solid #ddd;
+    padding: 10px 14px;
+    text-align: right;
+    font-size: 13px;
+    color: #333;
+  }
+
+  .invoice-table th { background: #f5f5f5; font-weight: 700; }
+
+  .invoice-total {
+    text-align: left;
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 16px;
+    padding: 12px;
+    background: #f5f5f5;
+    border-radius: 8px;
+  }
+
+  .invoice-footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+    font-size: 12px;
+    color: #888;
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">📱</div>
+    <div class="logo-text">
+      <div id="shop-name-sidebar">محل الصيانة</div>
+      <span>نظام الإدارة المتكامل</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">الرئيسية</div>
+    <div class="nav-item active" onclick="showPage('dashboard')">
+      <span class="icon">🏠</span> لوحة التحكم
+    </div>
+    <div class="nav-item" onclick="showPage('new-repair')">
+      <span class="icon">➕</span> تسجيل صيانة
+    </div>
+    <div class="nav-item" onclick="showPage('devices')">
+      <span class="icon">📱</span> الأجهزة
+    </div>
+
+    <div class="nav-section-title">المالية</div>
+    <div class="nav-item" onclick="showPage('cash')">
+      <span class="icon">💰</span> الصندوق
+    </div>
+    <div class="nav-item" onclick="showPage('expenses')">
+      <span class="icon">💸</span> المصاريف
+    </div>
+    <div class="nav-item" onclick="showPage('debts')">
+      <span class="icon">📋</span> الديون
+    </div>
+
+    <div class="nav-section-title">الإدارة</div>
+    <div class="nav-item" onclick="showPage('employees')">
+      <span class="icon">👷</span> الموظفون
+    </div>
+    <div class="nav-item" onclick="showPage('customers')">
+      <span class="icon">👥</span> العملاء
+    </div>
+    <div class="nav-item" onclick="showPage('reports')">
+      <span class="icon">📊</span> التقارير
+    </div>
+    <div class="nav-item" onclick="showPage('settings')">
+      <span class="icon">⚙️</span> الإعدادات
+    </div>
+  </nav>
+
+  <div class="sidebar-footer" style="display:flex;flex-direction:column;gap:8px;padding:12px 16px">
+    <button onclick="doLogout()" style="width:100%;padding:10px;background:#ef4444;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">🚪 تسجيل الخروج</button>
+    <div style="text-align:center;font-size:11px;color:var(--text-muted)">الإصدار 1.0.0</div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="s-loading" style="display:flex;position:fixed;inset:0;z-index:9999;background:#0a0e1a;flex-direction:column;align-items:center;justify-content:center;gap:14px">
+  <div style="font-size:50px">📱</div>
+  <div style="font-size:16px;font-weight:800;color:#f1f5f9">الهرم للاتصالات والصيانة</div>
+  <div style="font-size:12px;color:#64748b">جاري التحميل...</div>
+  <div style="width:140px;height:3px;background:#1e293b;border-radius:4px;overflow:hidden">
+    <div style="width:40%;height:100%;background:#00d4aa;border-radius:4px;animation:pbar 1.2s ease-in-out infinite"></div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="s-login" style="display:none;position:fixed;inset:0;z-index:9998;background:#0a0e1a;align-items:center;justify-content:center">
+  <div style="background:#111827;border:1px solid #1e293b;border-radius:18px;padding:36px;width:90%;max-width:360px">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-size:44px;margin-bottom:10px">📱</div>
+      <div style="font-size:18px;font-weight:900;color:#f1f5f9">الهرم للاتصالات والصيانة</div>
+      <div style="font-size:12px;color:#64748b;margin-top:4px">نظام الإدارة المتكامل</div>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:12px;color:#94a3b8;margin-bottom:5px">البريد الإلكتروني</label>
+      <input id="l-email" type="email" placeholder="example@gmail.com" style="width:100%;padding:11px 13px;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#f1f5f9;font-size:14px;direction:ltr;text-align:left;box-sizing:border-box;font-family:inherit;outline:none">
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="display:block;font-size:12px;color:#94a3b8;margin-bottom:5px">كلمة المرور</label>
+      <input id="l-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" style="width:100%;padding:11px 13px;background:#1e293b;border:1px solid #334155;border-radius:8px;color:#f1f5f9;font-size:14px;box-sizing:border-box;font-family:inherit;outline:none">
+    </div>
+    <div id="l-err" style="color:#ef4444;font-size:12px;text-align:center;margin-bottom:10px;min-height:18px"></div>
+    <button id="l-btn" onclick="doLogin()" style="width:100%;padding:13px;background:linear-gradient(135deg,#00d4aa,#0066ff);border:none;border-radius:9px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">🔐 دخول</button>
+  </div>
+</div>
+
+<style>@keyframes pbar{0%{margin-right:100%}50%{margin-right:0}100%{margin-right:100%}}</style>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="header">
+    <div class="header-title" id="page-title">لوحة التحكم</div>
+    <div class="header-meta">
+      <div class="header-date" id="current-date"></div>
+    </div>
+  </div>
+
+  <div id="content">
+
+    <!-- ==================== DASHBOARD ==================== -->
+    <div id="page-dashboard" class="page active">
+      <div class="section-header">
+        <div class="section-title">👋 مرحباً بك في النظام</div>
+        <button class="btn btn-primary" onclick="showPage('new-repair')">➕ صيانة جديدة</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card green">
+          <div class="stat-label">رصيد الصندوق</div>
+          <div class="stat-value" id="dash-balance">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">💰</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">أجهزة داخل الصيانة</div>
+          <div class="stat-value" id="dash-in-repair">0</div>
+          <div class="stat-sub">جهاز</div>
+          <div class="stat-icon">📱</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">الديون المستحقة</div>
+          <div class="stat-value" id="dash-debts">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">📋</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">🕐 آخر العمليات</div>
+          <div id="recent-ops"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📊 ملخص سريع</div>
+          <div id="quick-summary"></div>
+        </div>
+      </div>
+
+      <!-- سجل الأرقام المتسلسلة -->
+      <div class="card" style="margin-top:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div class="card-title" style="margin-bottom:0">🔢 سجل الأرقام المتسلسلة (IMEI / Serial)</div>
+          <button class="btn btn-sm btn-primary" onclick="openAddSerial()">➕ إضافة</button>
+        </div>
+        <div id="serial-log-list"></div>
+      </div>
+    </div>
+
+    <!-- ==================== NEW REPAIR ==================== -->
+    <div id="page-new-repair" class="page">
+      <div class="section-header">
+        <div class="section-title">➕ تسجيل صيانة جديدة</div>
+        <button class="btn btn-secondary" onclick="openFaultsMgr()" style="font-size:13px">⚙️ إدارة الأعطال</button>
+      </div>
+
+      <div class="card">
+        <div class="form-grid" id="repair-form">
+
+          <div class="form-group">
+            <label>التاريخ</label>
+            <input type="date" id="rep-date">
+          </div>
+
+          <div class="form-group">
+            <label>اسم الزبون *</label>
+            <input type="text" id="rep-customer" list="customers-list" placeholder="اختر أو اكتب الاسم">
+            <datalist id="customers-list"></datalist>
+          </div>
+
+          <div class="form-group">
+            <label>رقم الهاتف</label>
+            <input type="tel" id="rep-phone" placeholder="05xxxxxxxx">
+          </div>
+
+          <div class="form-group">
+            <label>موديل الجهاز</label>
+            <input type="text" id="rep-model" placeholder="مثال: iPhone 14 / S23">
+          </div>
+
+          <div class="form-group">
+            <label>نوع العمل</label>
+            <select id="rep-work-type">
+              <option value="هاردوير">🔧 هاردوير</option>
+              <option value="سوفتوير">💻 سوفتوير</option>
+              <option value="هاردوير وسوفتوير">🔧💻 هاردوير وسوفتوير</option>
+            </select>
+          </div>
+
+          <div class="form-group full">
+            <label>العطل</label>
+            <!-- chips الأعطال المختارة -->
+            <div id="fault-chips" style="display:flex;flex-wrap:wrap;gap:6px;min-height:32px;margin-bottom:8px"></div>
+            <!-- dropdown -->
+            <select id="rep-fault-select" style="width:100%;margin-bottom:8px">
+              <option value="">➕ اختر عطل من القائمة...</option>
+            </select>
+            <!-- ملاحظة إضافية اختيارية -->
+            <textarea id="rep-problem" rows="2" placeholder="ملاحظة إضافية (اختياري)..." style="margin-top:4px"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>سعر القطع (ليرة)</label>
+            <input type="number" id="rep-parts-cost" placeholder="0" min="0" step="0.5">
+          </div>
+
+          <div class="form-group">
+            <label>المبلغ المقبوض (ليرة)</label>
+            <input type="number" id="rep-paid" placeholder="0" min="0" step="0.5">
+          </div>
+
+          <div class="form-group full">
+            <label>حالة الدفع</label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="pay-status" value="كاش" checked onchange="toggleDebtField(this)">
+                💵 كاش
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="pay-status" value="بنك" onchange="toggleDebtField(this)">
+                🏦 بنك
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="pay-status" value="دين" onchange="toggleDebtField(this)">
+                📋 دين
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="pay-status" value="جزئي" onchange="toggleDebtField(this)">
+                💳 جزئي
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group" id="debt-field" style="display:none">
+            <label>الدين على (اسم الشخص/المحل)</label>
+            <input type="text" id="rep-debt-who" list="customers-list" placeholder="اسم المدين">
+          </div>
+
+          <div class="form-group" id="debt-amount-field" style="display:none">
+            <label>مبلغ الدين (ليرة)</label>
+            <input type="number" id="rep-debt-amount" placeholder="0" min="0" step="0.5">
+          </div>
+
+          <div class="form-group full" style="margin-top:8px">
+            <button class="btn btn-primary btn-lg" onclick="saveRepair()">💾 حفظ العملية</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== DEVICES ==================== -->
+    <div id="page-devices" class="page">
+      <div class="section-header">
+        <div class="section-title">📱 الأجهزة داخل الصيانة</div>
+      </div>
+
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="dev-search" placeholder="بحث..." oninput="renderDevices()">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>التاريخ</th>
+                <th>الزبون</th>
+                <th>الهاتف</th>
+                <th>النوع / الموديل</th>
+                <th>العطل</th>
+                <th>المجموع</th>
+                <th>المدفوع</th>
+                <th>الدفع</th>
+                <th>الحالة</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="devices-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== CASH ==================== -->
+    <div id="page-cash" class="page">
+      <div class="section-header">
+        <div class="section-title">💰 الصندوق والبنك</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="openAddCash('in')">➕ مقبوض كاش</button>
+          <button class="btn btn-danger" onclick="openAddCash('out')">➖ مدفوع كاش</button>
+          <button class="btn btn-primary" style="background:var(--accent2)" onclick="openAddCash('bank_in')">🏦 مقبوض بنك</button>
+          <button class="btn btn-danger" style="background:#7c3aed" onclick="openAddCash('bank_out')">🏦 مدفوع بنك</button>
+          <button class="btn btn-secondary" onclick="openTransfer()" style="background:#0f766e">🔄 تحويل</button>
+          <button class="btn btn-secondary" onclick="openDollarModal()" style="background:#b45309">💲 دولار</button>
+        </div>
+      </div>
+
+      <!-- كاش -->
+      <div style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:8px;padding-right:4px">💵 الصندوق (كاش)</div>
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+        <div class="stat-card green">
+          <div class="stat-label">إجمالي المقبوضات</div>
+          <div class="stat-value" id="cash-in-total">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">⬆️</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">إجمالي المدفوعات</div>
+          <div class="stat-value" id="cash-out-total">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">⬇️</div>
+        </div>
+        <div class="stat-card teal">
+          <div class="stat-label">رصيد الصندوق</div>
+          <div class="stat-value" id="cash-balance">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">💰</div>
+        </div>
+      </div>
+
+      <!-- بنك -->
+      <div style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:8px;padding-right:4px">🏦 حساب البنك</div>
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+        <div class="stat-card green">
+          <div class="stat-label">إجمالي مقبوضات البنك</div>
+          <div class="stat-value" id="bank-in-total">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">⬆️</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">إجمالي مدفوعات البنك</div>
+          <div class="stat-value" id="bank-out-total">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">⬇️</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">رصيد البنك</div>
+          <div class="stat-value" id="bank-balance">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">🏦</div>
+        </div>
+      </div>
+
+      <!-- دولار -->
+      <div style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:8px;padding-right:4px">💲 الدولار</div>
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+        <div class="stat-card green">
+          <div class="stat-label">إجمالي الدولار المشترى</div>
+          <div class="stat-value" id="usd-in-total">0</div>
+          <div class="stat-sub">$ دولار</div>
+          <div class="stat-icon">⬆️</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">إجمالي الدولار المدفوع</div>
+          <div class="stat-value" id="usd-out-total">0</div>
+          <div class="stat-sub">$ دولار</div>
+          <div class="stat-icon">⬇️</div>
+        </div>
+        <div class="stat-card teal">
+          <div class="stat-label">رصيد الدولار</div>
+          <div class="stat-value" id="usd-balance">0</div>
+          <div class="stat-sub">$ دولار</div>
+          <div class="stat-icon">💲</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div class="card-title" style="margin-bottom:0">📜 سجل المعاملات</div>
+          <select id="cash-filter" onchange="renderCash()" style="padding:6px 10px;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;color:var(--text-main);font-size:12px;font-family:inherit">
+            <option value="all">الكل</option>
+            <option value="cash">💵 كاش فقط</option>
+            <option value="bank">🏦 بنك فقط</option>
+            <option value="usd">💲 دولار فقط</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>التاريخ</th>
+                <th>الوسيلة</th>
+                <th>النوع</th>
+                <th>الوصف</th>
+                <th>الشخص</th>
+                <th>المبلغ</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="cash-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== EXPENSES ==================== -->
+    <div id="page-expenses" class="page">
+      <div class="section-header">
+        <div class="section-title">💸 المصاريف</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="openExpenseCatsMgr()">⚙️ التصنيفات</button>
+          <button class="btn btn-primary" onclick="openAddExpense()">➕ إضافة مصروف</button>
+        </div>
+      </div>
+
+      <!-- بطاقات الإجماليات -->
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+        <div class="stat-card red">
+          <div class="stat-label">مصاريف هذا الشهر</div>
+          <div class="stat-value" id="exp-month-total">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">📅</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-label">إجمالي المصاريف</div>
+          <div class="stat-value" id="exp-all-total">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">💸</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">عدد العمليات</div>
+          <div class="stat-value" id="exp-count">0</div>
+          <div class="stat-sub">عملية</div>
+          <div class="stat-icon">🔢</div>
+        </div>
+      </div>
+
+      <!-- فلتر وتصنيف -->
+      <div class="search-bar" style="margin-bottom:16px">
+        <select id="exp-filter-cat" onchange="renderExpenses()" style="padding:8px 12px;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;color:var(--text-main);font-size:13px;font-family:inherit">
+          <option value="">كل التصنيفات</option>
+        </select>
+        <select id="exp-filter-month" onchange="renderExpenses()" style="padding:8px 12px;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;color:var(--text-main);font-size:13px;font-family:inherit">
+          <option value="">كل الأشهر</option>
+        </select>
+      </div>
+
+      <!-- سجل المصاريف -->
+      <div class="card">
+        <div class="card-title">📜 سجل المصاريف</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>التاريخ</th>
+                <th>التصنيف</th>
+                <th>الوصف</th>
+                <th>المستفيد</th>
+                <th>طريقة الدفع</th>
+                <th>المبلغ</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="exp-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ملخص حسب التصنيف -->
+      <div class="card" style="margin-top:20px">
+        <div class="card-title">📊 ملخص حسب التصنيف</div>
+        <div id="exp-by-cat"></div>
+      </div>
+    </div>
+
+    <!-- ==================== DEBTS ==================== -->
+    <div id="page-debts" class="page">
+      <div class="section-header">
+        <div class="section-title">📋 الديون</div>
+        <button class="btn btn-primary" onclick="openAddDebt()">➕ إضافة دين</button>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(2,1fr)">
+        <div class="stat-card red">
+          <div class="stat-label">إجمالي الديون</div>
+          <div class="stat-value" id="debt-total">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">📋</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-label">عدد المدينين</div>
+          <div class="stat-value" id="debt-count">0</div>
+          <div class="stat-sub">شخص</div>
+          <div class="stat-icon">👤</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>الاسم</th>
+                <th>المبلغ الأصلي</th>
+                <th>المدفوع</th>
+                <th>المتبقي</th>
+                <th>التاريخ</th>
+                <th>الحالة</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="debts-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== EMPLOYEES ==================== -->
+    <div id="page-employees" class="page">
+      <div class="section-header">
+        <div class="section-title">👷 الموظفون</div>
+        <button class="btn btn-primary" onclick="openAddEmployee()">➕ إضافة موظف</button>
+      </div>
+
+      <!-- بطاقات إجمالية -->
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+        <div class="stat-card blue">
+          <div class="stat-label">عدد الموظفين</div>
+          <div class="stat-value" id="emp-count">0</div>
+          <div class="stat-sub">موظف</div>
+          <div class="stat-icon">👷</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">إجمالي السحوبات</div>
+          <div class="stat-value" id="emp-total-withdrawn">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">💸</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-label">سحوبات هذا الشهر</div>
+          <div class="stat-value" id="emp-month-withdrawn">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">📅</div>
+        </div>
+      </div>
+
+      <!-- قائمة الموظفين -->
+      <div id="employees-list"></div>
+    </div>
+
+    <!-- ==================== CUSTOMERS ==================== -->
+    <div id="page-customers" class="page">
+      <div class="section-header">
+        <div class="section-title">👥 العملاء والمحلات</div>
+        <button class="btn btn-primary" onclick="openAddCustomer()">➕ إضافة عميل</button>
+      </div>
+
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="cust-search" placeholder="بحث عن عميل..." oninput="renderCustomers()">
+        </div>
+        <select id="cust-type-filter" onchange="renderCustomers()">
+          <option value="">الكل</option>
+          <option value="زبون">زبون</option>
+          <option value="محل">محل</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>الاسم</th>
+                <th>رقم الهاتف</th>
+                <th>النوع</th>
+                <th>عدد العمليات</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="customers-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== REPORTS ==================== -->
+    <div id="page-reports" class="page">
+      <div class="section-header">
+        <div class="section-title">📊 التقارير</div>
+        <div style="display:flex;gap:10px">
+          <select id="report-period" onchange="renderReports()">
+            <option value="today">اليوم</option>
+            <option value="week">هذا الأسبوع</option>
+            <option value="month" selected>هذا الشهر</option>
+            <option value="year">هذه السنة</option>
+            <option value="all">الكل</option>
+          </select>
+          <button class="btn btn-secondary" onclick="window.print()">🖨️ طباعة</button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card orange" onclick="showDrill('today-profit')" style="cursor:pointer">
+          <div class="stat-label">أرباح اليوم</div>
+          <div class="stat-value" id="rep-today">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">📈</div>
+        </div>
+        <div class="stat-card teal" onclick="showDrill('month-profit')" style="cursor:pointer">
+          <div class="stat-label">أرباح الشهر</div>
+          <div class="stat-value" id="rep-month">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">📅</div>
+        </div>
+        <div class="stat-card green" onclick="showDrill('cash-in')" style="cursor:pointer">
+          <div class="stat-label">إجمالي المقبوضات (كاش)</div>
+          <div class="stat-value" id="rep-total-in">0</div>
+          <div class="stat-sub">ليرة</div>
+        </div>
+        <div class="stat-card blue" onclick="showDrill('bank-in')" style="cursor:pointer">
+          <div class="stat-label">إجمالي مقبوضات البنك</div>
+          <div class="stat-value" id="rep-bank-in">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">🏦</div>
+        </div>
+        <div class="stat-card red" onclick="showDrill('cash-out')" style="cursor:pointer">
+          <div class="stat-label">إجمالي المدفوعات</div>
+          <div class="stat-value" id="rep-total-out">0</div>
+          <div class="stat-sub">ليرة</div>
+        </div>
+        <div class="stat-card orange" onclick="showDrill('expenses')" style="cursor:pointer">
+          <div class="stat-label">إجمالي المصاريف</div>
+          <div class="stat-value" id="rep-expenses">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">💸</div>
+        </div>
+        <div class="stat-card blue" onclick="showDrill('fixed')" style="cursor:pointer">
+          <div class="stat-label">أجهزة تم تصليحها</div>
+          <div class="stat-value" id="rep-fixed">0</div>
+          <div class="stat-sub">جهاز</div>
+        </div>
+        <div class="stat-card red" onclick="showDrill('parts-cost')" style="cursor:pointer">
+          <div class="stat-label">إجمالي تكلفة القطع</div>
+          <div class="stat-value" id="rep-parts-total">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">🔩</div>
+        </div>
+      </div>
+
+      <!-- HARDWARE vs SOFTWARE BREAKDOWN -->
+      <div class="grid-2" style="margin-bottom:20px">
+        <div class="card" style="border-right:3px solid var(--accent2)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div class="card-title" style="margin-bottom:0">🔧 هاردوير</div>
+            <button class="btn btn-sm btn-secondary" onclick="toggleWorkList('hw')">📋 السجل</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span style="color:var(--text-muted)">عدد الأجهزة</span>
+              <span class="badge badge-info" id="hw-count">0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span style="color:var(--text-muted)">إجمالي الأرباح</span>
+              <strong style="color:var(--accent2)" id="hw-income">0 ليرة</strong>
+            </div>
+          </div>
+          <div id="hw-list" style="display:none;margin-top:14px"></div>
+        </div>
+        <div class="card" style="border-right:3px solid var(--success)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div class="card-title" style="margin-bottom:0">💻 سوفتوير</div>
+            <button class="btn btn-sm btn-secondary" onclick="toggleWorkList('sw')">📋 السجل</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span style="color:var(--text-muted)">عدد الأجهزة</span>
+              <span class="badge badge-success" id="sw-count">0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span style="color:var(--text-muted)">إجمالي الأرباح</span>
+              <strong style="color:var(--success)" id="sw-income">0 ليرة</strong>
+            </div>
+          </div>
+          <div id="sw-list" style="display:none;margin-top:14px"></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">📱 أكثر الأعطال تكراراً</div>
+          <div id="top-problems"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📱 أكثر الأجهزة صيانة</div>
+          <div id="top-devices"></div>
+        </div>
+      </div>
+
+      <!-- MONTHLY WITHDRAWALS INVENTORY -->
+      <div class="card" style="margin-top:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div class="card-title" style="margin-bottom:0">📋 جرد المدفوعات — سحب الأشخاص</div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <label style="font-size:12px;color:var(--text-muted)">الشهر:</label>
+            <input type="month" id="inv-month" style="width:auto" onchange="renderInventory()">
+          </div>
+        </div>
+        <div id="inventory-content"></div>
+      </div>
+    </div>
+
+    <!-- ==================== SETTINGS ==================== -->
+    <div id="page-settings" class="page">
+      <div class="section-header">
+        <div class="section-title">⚙️ الإعدادات</div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">🏪 معلومات المحل</div>
+          <div class="form-grid" style="grid-template-columns:1fr">
+            <div class="form-group">
+              <label>اسم المحل</label>
+              <input type="text" id="set-shop-name" placeholder="اسم المحل">
+            </div>
+            <div class="form-group">
+              <label>رقم الهاتف</label>
+              <input type="tel" id="set-shop-phone" placeholder="رقم الهاتف">
+            </div>
+            <div class="form-group">
+              <label>عنوان المحل</label>
+              <input type="text" id="set-shop-address" placeholder="عنوان المحل">
+            </div>
+            <div class="form-group">
+              <label>ملاحظة الفاتورة</label>
+              <textarea id="set-invoice-note" placeholder="ملاحظة تظهر أسفل الفاتورة..."></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()">💾 حفظ الإعدادات</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">💾 النسخ الاحتياطي</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <p style="font-size:13px;color:var(--text-muted)">يمكنك تصدير واستيراد البيانات بشكل كامل.</p>
+            <button class="btn btn-success" onclick="exportBackup()">📤 تصدير نسخة احتياطية</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">📥 استيراد نسخة احتياطية</button>
+            <input type="file" id="import-file" accept=".json" style="display:none" onchange="importBackup(event)">
+            <div class="divider"></div>
+            <button class="btn btn-danger" onclick="clearAllData()">🗑️ مسح جميع البيانات</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- Edit Repair Modal -->
+<div class="modal-overlay" id="modal-edit-repair">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <div class="modal-title">✏️ تعديل العملية</div>
+      <button class="modal-close" onclick="closeModal('modal-edit-repair')">✕</button>
+    </div>
+    <div class="form-grid" id="edit-repair-form"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-repair')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveEditRepair()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Invoice Modal -->
+<div class="modal-overlay" id="modal-invoice">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <div class="modal-title">🖨️ فاتورة</div>
+      <button class="modal-close" onclick="closeModal('modal-invoice')">✕</button>
+    </div>
+    <div id="invoice-content"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-invoice')">إغلاق</button>
+      <button class="btn btn-primary" onclick="printInvoice()">🖨️ طباعة</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Cash Modal -->
+<div class="modal-overlay" id="modal-cash">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="cash-modal-title">إضافة معاملة</div>
+      <button class="modal-close" onclick="closeModal('modal-cash')">✕</button>
+    </div>
+    <div class="form-grid" style="grid-template-columns:1fr">
+      <div class="form-group">
+        <label>الوصف</label>
+        <input type="text" id="cash-desc" placeholder="وصف المعاملة">
+      </div>
+      <div class="form-group" id="cash-person-group" style="display:none">
+        <label>اسم الشخص (اختياري للجرد)</label>
+        <input type="text" id="cash-person" list="customers-list" placeholder="اسم الشخص الذي سحب المبلغ">
+      </div>
+      <div class="form-group">
+        <label>المبلغ (ليرة)</label>
+        <input type="number" id="cash-amount" placeholder="0" min="0" step="0.5">
+      </div>
+      <div class="form-group">
+        <label>التاريخ</label>
+        <input type="date" id="cash-date">
+      </div>
+    </div>
+    <input type="hidden" id="cash-type">
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-cash')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveCash()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Debt Modal -->
+<div class="modal-overlay" id="modal-debt">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="debt-modal-title">إضافة دين</div>
+      <button class="modal-close" onclick="closeModal('modal-debt')">✕</button>
+    </div>
+    <div class="form-grid" style="grid-template-columns:1fr">
+      <div class="form-group">
+        <label>الاسم</label>
+        <input type="text" id="debt-name" list="customers-list" placeholder="اسم المدين">
+      </div>
+      <div class="form-group">
+        <label>المبلغ الكلي (ليرة)</label>
+        <input type="number" id="debt-amount" placeholder="0" min="0" step="0.5">
+      </div>
+      <div class="form-group">
+        <label>التاريخ</label>
+        <input type="date" id="debt-date">
+      </div>
+      <div class="form-group">
+        <label>ملاحظات</label>
+        <textarea id="debt-note" placeholder="ملاحظات..."></textarea>
+      </div>
+    </div>
+    <input type="hidden" id="debt-edit-id">
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-debt')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveDebt()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pay Debt Modal -->
+<div class="modal-overlay" id="modal-pay-debt">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">💳 تسديد دين</div>
+      <button class="modal-close" onclick="closeModal('modal-pay-debt')">✕</button>
+    </div>
+    <div class="form-grid" style="grid-template-columns:1fr">
+      <div class="form-group">
+        <label>المبلغ المسدد (ليرة)</label>
+        <input type="number" id="pay-debt-amount" placeholder="0" min="0" step="0.5">
+      </div>
+    </div>
+    <input type="hidden" id="pay-debt-id">
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-pay-debt')">إلغاء</button>
+      <button class="btn btn-success" onclick="confirmPayDebt()">✅ تأكيد التسديد</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Customer Modal -->
+<div class="modal-overlay" id="modal-customer">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="cust-modal-title">إضافة عميل</div>
+      <button class="modal-close" onclick="closeModal('modal-customer')">✕</button>
+    </div>
+    <div class="form-grid" style="grid-template-columns:1fr">
+      <div class="form-group">
+        <label>الاسم</label>
+        <input type="text" id="cust-name" placeholder="اسم الزبون أو المحل">
+      </div>
+      <div class="form-group">
+        <label>رقم الهاتف</label>
+        <input type="tel" id="cust-phone" placeholder="05xxxxxxxx">
+      </div>
+      <div class="form-group">
+        <label>النوع</label>
+        <select id="cust-type">
+          <option value="زبون">زبون</option>
+          <option value="محل">محل</option>
+        </select>
+      </div>
+    </div>
+    <input type="hidden" id="cust-edit-id">
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-customer')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveCustomer()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Customer History Modal -->
+<div class="modal-overlay" id="modal-customer-history">
+  <div class="modal" style="max-width:780px">
+    <div class="modal-header">
+      <div class="modal-title" id="cust-history-title">سجل العميل</div>
+      <button class="modal-close" onclick="closeModal('modal-customer-history')">✕</button>
+    </div>
+    <div id="cust-history-content"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-customer-history')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== DEBT HISTORY MODAL ==================== -->
+<div class="modal-overlay" id="modal-debt-history">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <div class="modal-title" id="debt-history-title">📋 سجل الدفعات</div>
+      <button class="modal-close" onclick="closeModal('modal-debt-history')">✕</button>
+    </div>
+    <div id="debt-history-content" style="padding:20px"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-debt-history')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <div class="modal-title">⚠️ تأكيد</div>
+      <button class="modal-close" onclick="closeModal('modal-confirm')">✕</button>
+    </div>
+    <p id="confirm-message" style="font-size:14px;color:var(--text-dim)"></p>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-confirm')">إلغاء</button>
+      <button class="btn btn-danger" id="confirm-ok">تأكيد الحذف</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== FAULTS MANAGER MODAL ==================== -->
+<div class="modal-overlay" id="modal-faults-mgr">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ إدارة قائمة الأعطال</div>
+      <button class="modal-close" onclick="closeModal('modal-faults-mgr')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:14px">أضف الأعطال الشائعة لتظهر في قائمة الاختيار عند تسجيل الصيانة</p>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <input type="text" id="new-fault-name" placeholder="مثال: شاشة مكسورة، بطارية ضعيفة..." style="flex:1" onkeydown="if(event.key==='Enter')saveFault()">
+        <button class="btn btn-primary" onclick="saveFault()">➕ إضافة</button>
+      </div>
+      <div id="faults-manager-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== DOLLAR MODAL ==================== -->
+<div class="modal-overlay" id="modal-dollar">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title" id="dollar-modal-title">💲 معاملة دولار</div>
+      <button class="modal-close" onclick="closeModal('modal-dollar')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="dollar-op-type">
+
+      <!-- تبديل بين شراء ودفع -->
+      <div style="display:flex;gap:8px;margin-bottom:18px">
+        <button id="btn-dollar-buy" class="btn btn-primary" style="flex:1;background:#b45309" onclick="openDollarModal('buy')">🛒 شراء دولار</button>
+        <button id="btn-dollar-pay" class="btn btn-secondary" style="flex:1" onclick="openDollarModal('pay')">💸 دفع بالدولار</button>
+      </div>
+
+      <!-- شراء دولار: يظهر حقل سعر الصرف -->
+      <div id="dollar-buy-section">
+        <div class="form-group">
+          <label>المبلغ بالدولار ($)</label>
+          <input type="number" id="dollar-usd-amount" placeholder="0" min="0" step="0.01">
+        </div>
+        <div id="dollar-rate-group" class="form-group">
+          <label>سعر الصرف (ليرة لكل دولار)</label>
+          <input type="number" id="dollar-rate" placeholder="مثال: 13000" min="0" step="1">
+          <div id="dollar-lira-preview" style="margin-top:6px;padding:8px 12px;background:var(--bg-card2);border-radius:8px;font-size:13px;color:var(--text-muted)">
+            المبلغ بالليرة: —
+          </div>
+        </div>
+      </div>
+
+      <!-- دفع بالدولار: بس المبلغ + لمن -->
+      <div id="dollar-pay-section" style="display:none">
+        <div class="form-group">
+          <label>المبلغ المدفوع ($)</label>
+          <input type="number" id="dollar-pay-amount" placeholder="0" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>لمن (اسم المحل / الشخص)</label>
+          <input type="text" id="dollar-pay-to" list="customers-list" placeholder="اسم محل القطع...">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>ملاحظة (اختياري)</label>
+        <input type="text" id="dollar-note" placeholder="">
+      </div>
+
+      <div class="form-group">
+        <label>التاريخ</label>
+        <input type="date" id="dollar-date">
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-dollar')">إلغاء</button>
+      <button class="btn btn-primary" id="dollar-save-btn" onclick="saveDollarOp()" style="background:#b45309">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TRANSFER MODAL ==================== -->
+<div class="modal-overlay" id="modal-transfer">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <div class="modal-title">🔄 تحويل بين الصندوق والبنك</div>
+      <button class="modal-close" onclick="closeModal('modal-transfer')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- اتجاه التحويل -->
+      <div class="form-group" style="margin-bottom:16px">
+        <label>اتجاه التحويل</label>
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <label style="flex:1;cursor:pointer">
+            <input type="radio" name="transfer-dir" value="cash_to_bank" checked onchange="updateTransferLabels()">
+            <div id="lbl-cash-to-bank" style="margin-top:6px;padding:12px;border-radius:10px;border:2px solid var(--accent);background:var(--bg-card2);text-align:center;font-size:13px;font-weight:600">
+              💵 من الصندوق<br>↓<br>🏦 إلى البنك
+            </div>
+          </label>
+          <label style="flex:1;cursor:pointer">
+            <input type="radio" name="transfer-dir" value="bank_to_cash" onchange="updateTransferLabels()">
+            <div id="lbl-bank-to-cash" style="margin-top:6px;padding:12px;border-radius:10px;border:2px solid var(--border);background:var(--bg-card2);text-align:center;font-size:13px;font-weight:600">
+              🏦 من البنك<br>↓<br>💵 إلى الصندوق
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>المبلغ (ليرة)</label>
+        <input type="number" id="transfer-amount" placeholder="0" min="0" step="0.5">
+      </div>
+
+      <div class="form-group">
+        <label>التاريخ</label>
+        <input type="date" id="transfer-date">
+      </div>
+
+      <div class="form-group">
+        <label>ملاحظة (اختياري)</label>
+        <input type="text" id="transfer-note" placeholder="سبب التحويل...">
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-transfer')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveTransfer()" style="background:#0f766e">🔄 تنفيذ التحويل</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== EXPENSE MODAL ==================== -->
+<div class="modal-overlay" id="modal-expense">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <div class="modal-title" id="expense-modal-title">➕ إضافة مصروف</div>
+      <button class="modal-close" onclick="closeModal('modal-expense')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="expense-edit-id">
+
+      <div class="form-group">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <label style="margin-bottom:0">التصنيف *</label>
+          <button class="btn btn-sm btn-secondary" style="font-size:11px;padding:3px 8px" onclick="closeModal('modal-expense');openExpenseCatsMgr()">⚙️ إدارة التصنيفات</button>
+        </div>
+        <select id="expense-cat">
+          <option value="">-- اختر تصنيف --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>الوصف *</label>
+        <input type="text" id="expense-desc" placeholder="مثال: راتب أحمد، إيجار شهر مارس...">
+      </div>
+
+      <div class="form-group">
+        <label>المستفيد (اختياري)</label>
+        <input type="text" id="expense-to" placeholder="اسم الموظف / صاحب المحل...">
+      </div>
+
+      <div class="form-group">
+        <label>المبلغ (ليرة) *</label>
+        <input type="number" id="expense-amount" placeholder="0" min="0" step="0.5">
+      </div>
+
+      <div class="form-group">
+        <label>طريقة الدفع</label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="exp-pay-method" value="كاش" checked> 💵 كاش
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="exp-pay-method" value="بنك"> 🏦 بنك
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>التاريخ</label>
+        <input type="date" id="expense-date">
+      </div>
+
+      <div class="form-group">
+        <label>ملاحظة (اختياري)</label>
+        <input type="text" id="expense-note" placeholder="">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-expense')">إلغاء</button>
+      <button class="btn btn-danger" onclick="saveExpense()">💾 حفظ المصروف</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== EXPENSE CATEGORIES MODAL ==================== -->
+<div class="modal-overlay" id="modal-exp-cats">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ إدارة تصنيفات المصاريف</div>
+      <button class="modal-close" onclick="closeModal('modal-exp-cats');openAddExpense()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:14px">أضف تصنيفاتك الخاصة لتظهر في قائمة الاختيار</p>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <input type="text" id="new-exp-cat-name" placeholder="مثال: كهرباء، إنترنت، موظف..." style="flex:1" onkeydown="if(event.key==='Enter')saveExpenseCat()">
+        <button class="btn btn-primary" onclick="saveExpenseCat()">➕ إضافة</button>
+      </div>
+      <div id="exp-cats-list"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('modal-exp-cats');openAddExpense()">✅ رجوع للإضافة</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== EMPLOYEE MODAL ==================== -->
+<div class="modal-overlay" id="modal-employee">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <div class="modal-title" id="emp-modal-title">➕ إضافة موظف</div>
+      <button class="modal-close" onclick="closeModal('modal-employee')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="emp-edit-id">
+      <div class="form-group">
+        <label>اسم الموظف *</label>
+        <input type="text" id="emp-name" placeholder="مثال: أحمد محمد">
+      </div>
+      <div class="form-group">
+        <label>رقم الهاتف (اختياري)</label>
+        <input type="text" id="emp-phone" placeholder="">
+      </div>
+      <div class="form-group">
+        <label>ملاحظة (اختياري)</label>
+        <input type="text" id="emp-note" placeholder="">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-employee')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveEmployee()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== EMPLOYEE WITHDRAWAL MODAL ==================== -->
+<div class="modal-overlay" id="modal-emp-withdraw">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <div class="modal-title" id="emp-withdraw-title">💸 تسجيل سحب</div>
+      <button class="modal-close" onclick="closeModal('modal-emp-withdraw')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="emp-withdraw-id">
+      <div class="form-group">
+        <label>المبلغ (ليرة) *</label>
+        <input type="number" id="emp-withdraw-amount" placeholder="0" min="0">
+      </div>
+      <div class="form-group">
+        <label>طريقة الدفع</label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="emp-pay-method" value="كاش" checked> 💵 كاش
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="emp-pay-method" value="بنك"> 🏦 بنك
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>التاريخ</label>
+        <input type="date" id="emp-withdraw-date">
+      </div>
+      <div class="form-group">
+        <label>ملاحظة (اختياري)</label>
+        <input type="text" id="emp-withdraw-note" placeholder="مثال: سلفة، راتب جزئي...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-emp-withdraw')">إلغاء</button>
+      <button class="btn btn-danger" onclick="saveEmpWithdraw()">💾 تسجيل السحب</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== REPORT DRILLDOWN MODAL ==================== -->
+<div class="modal-overlay" id="modal-report-drill">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <div class="modal-title" id="drill-title">السجل</div>
+      <button class="modal-close" onclick="closeModal('modal-report-drill')">✕</button>
+    </div>
+    <div id="drill-content" style="padding:20px;max-height:60vh;overflow-y:auto"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-report-drill')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SERIAL MODAL ==================== -->
+<div class="modal-overlay" id="modal-serial">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title">🔢 تسجيل الأرقام المستخدمة اليوم</div>
+      <button class="modal-close" onclick="closeModal('modal-serial')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>التاريخ</label>
+        <input type="date" id="serial-date">
+      </div>
+      <div class="form-group">
+        <label>آخر رقم استخدمته</label>
+        <input type="text" id="serial-from" placeholder="مثال: 123456789">
+      </div>
+      <div class="form-group">
+        <label>ملاحظة (اختياري)</label>
+        <input type="text" id="serial-note" placeholder="مثال: دفعة سامسونج...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-serial')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveSerial()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- Hidden Invoice Print -->
+<div id="invoice-print"></div>
+
+<script type="module">
+import { initializeApp }    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, indexedDBLocalPersistence, setPersistence }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+// ── Config ──────────────────────────────────────────────
+const app  = initializeApp({
+  apiKey:            "AIzaSyBBfeZjLKQ16JdIz9B5V2kHpKQSUwb6b4Q",
+  authDomain:        "alhram-teknik-servies.firebaseapp.com",
+  projectId:         "alhram-teknik-servies",
+  storageBucket:     "alhram-teknik-servies.firebasestorage.app",
+  messagingSenderId: "47174101606",
+  appId:             "1:47174101606:web:aabecde5b74db3576edba7"
+});
+const fdb  = getFirestore(app);
+const auth = getAuth(app);
+setPersistence(auth, indexedDBLocalPersistence).catch(()=>{});
+
+// ── Cache (in-memory mirror of Firestore) ───────────────
+const cache = { repairs:[], cash_transactions:[], debts:[], customers:[], settings:{}, faults:[], expenses:[], exp_categories:[], employees:[] };
+
+// ── DB API (sync reads, async writes) ───────────────────
+const K_REPAIRS='repairs', K_CASH='cash_transactions', K_DEBTS='debts', K_CUSTOMERS='customers', K_SETTINGS='settings', K_FAULTS='faults', K_EXPENSES='expenses', K_EXP_CATS='exp_categories', K_EMPLOYEES='employees';
+
+const DB = {
+  get:    k => [...(cache[k]||[])],
+  getObj: (k,def={}) => k==='settings' ? {...cache.settings,...def,...cache.settings} : def,
+  set(k, newArr) {
+    const old = cache[k]||[];
+    cache[k] = newArr;
+    (async()=>{
+      try {
+        // حذف العناصر المحذوفة
+        const ids = new Set(newArr.map(x=>x.id));
+        for(const o of old) if(!ids.has(o.id)) await deleteDoc(doc(fdb,k,o.id));
+        // كتابة العناصر الجديدة أو المعدّلة فقط
+        const oldMap = new Map(old.map(x=>[x.id, JSON.stringify(x)]));
+        for(const n of newArr) {
+          if(oldMap.get(n.id) !== JSON.stringify(n)) await setDoc(doc(fdb,k,n.id), n);
+        }
+      } catch(e){ console.error('DB.set',k,e.code||e.message); }
+    })();
+  },
+  setObj(k, v) {
+    cache.settings = v;
+    setDoc(doc(fdb,'settings','main'), v).catch(e=>console.error('DB.setObj',e));
+  }
+};
+
+// ── Realtime Listeners ───────────────────────────────────
+let started=false; const unsubs=[];
+function startListeners(){
+  if(started) return; started=true;
+  [K_REPAIRS,K_CASH,K_DEBTS,K_CUSTOMERS,K_FAULTS,K_EXPENSES,K_EXP_CATS,K_EMPLOYEES].forEach(col=>{
+    unsubs.push(onSnapshot(collection(fdb,col), snap=>{
+      cache[col]=snap.docs.map(d=>({id:d.id,...d.data()}));
+      refreshCurrentPage();
+      if(col===K_FAULTS) loadFaultsDropdown();
+    }, e=>console.error('snap',col,e.code)));
+  });
+  unsubs.push(onSnapshot(doc(fdb,'settings','main'), snap=>{
+    if(snap.exists()){ cache.settings=snap.data(); applySettings(); }
+  }));
+}
+function stopListeners(){ unsubs.forEach(u=>u()); unsubs.length=0; started=false; }
+
+function applySettings(){
+  const n=cache.settings.shopName;
+  if(n) document.getElementById('shop-name-sidebar').textContent=n;
+}
+
+function refreshCurrentPage(){
+  const a=document.querySelector('.page.active'); if(!a) return;
+  const id=a.id.replace('page-','');
+  if(id==='dashboard') renderDashboard();
+  else if(id==='devices')   renderDevices();
+  else if(id==='cash')      renderCash();
+  else if(id==='expenses')  renderExpenses();
+  else if(id==='employees') renderEmployees();
+  else if(id==='debts')     renderDebts();
+  else if(id==='customers') renderCustomers();
+  else if(id==='reports')   renderReports();
+}
+
+// ── Auth ─────────────────────────────────────────────────
+function showLoading(){ document.getElementById('s-loading').style.display='flex'; document.getElementById('s-login').style.display='none'; }
+function showLogin(){ document.getElementById('s-loading').style.display='none'; document.getElementById('s-login').style.display='flex'; }
+function showApp(){ document.getElementById('s-loading').style.display='none'; document.getElementById('s-login').style.display='none'; }
+
+window.doLogin=function(){
+  const email=document.getElementById('l-email').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  const btn=document.getElementById('l-btn');
+  const err=document.getElementById('l-err');
+  err.textContent=''; btn.disabled=true; btn.textContent='⏳ جاري الدخول...';
+  signInWithEmailAndPassword(auth,email,pass).catch(()=>{
+    err.textContent='❌ الإيميل أو كلمة المرور غلط';
+    btn.disabled=false; btn.textContent='🔐 دخول';
+  });
+};
+window.doLogout=function(){
+  stopListeners();
+  cache.repairs=[]; cache.cash_transactions=[]; cache.debts=[]; cache.customers=[]; cache.settings={};
+  signOut(auth);
+};
+
+// ── Helpers ──────────────────────────────────────────────
+
+let editRepairId = null;
+
+// ==================== UTILS ====================
+function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+
+function today() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function formatDate(d) {
+  if (!d) return '-';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('ar-SA', { year: 'numeric', month: '2-digit', day: '2-digit' });
+}
+
+function formatNum(n) {
+  return Number(n || 0).toLocaleString('ar');
+}
+
+function toast(msg, type='success') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  const icons = { success:'✅', error:'❌', info:'ℹ️' };
+  t.innerHTML = `<span>${icons[type]||'ℹ️'}</span>${msg}`;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+
+  const map = {
+    'dashboard':'لوحة التحكم','new-repair':'تسجيل صيانة جديدة',
+    'devices':'الأجهزة','cash':'الصندوق','expenses':'المصاريف','debts':'الديون',
+    'employees':'الموظفون','customers':'العملاء','reports':'التقارير','settings':'الإعدادات'
+  };
+  document.getElementById('page-title').textContent = map[id] || '';
+
+  // find nav item
+  document.querySelectorAll('.nav-item').forEach(item => {
+    if (item.getAttribute('onclick') === `showPage('${id}')`) {
+      item.classList.add('active');
+    }
+  });
+
+  // refresh pages
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'devices') renderDevices();
+  if (id === 'cash') renderCash();
+  if (id === 'expenses') renderExpenses();
+  if (id === 'employees') renderEmployees();
+  if (id === 'debts') renderDebts();
+  if (id === 'customers') renderCustomers();
+  if (id === 'reports') renderReports();
+  if (id === 'new-repair') initRepairForm();
+  if (id === 'settings') loadSettings();
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// ==================== CUSTOMERS DATA ====================
+function getCustomersDatalist() {
+  const custs = DB.get(K_CUSTOMERS);
+  const dl = document.getElementById('customers-list');
+  if (dl) {
+    dl.innerHTML = custs.map(c => `<option value="${c.name}">`).join('');
+  }
+}
+
+// ==================== DASHBOARD ====================
+function renderDashboard() {
+  const repairs = DB.get(K_REPAIRS);
+  const cash = DB.get(K_CASH);
+  const debts = DB.get(K_DEBTS);
+  const todayStr = today();
+  const monthStr = todayStr.slice(0, 7);
+
+  // Balance
+  const totalIn = cash.filter(c => c.type === 'in').reduce((s, c) => s + +c.amount, 0);
+  const totalOut = cash.filter(c => c.type === 'out').reduce((s, c) => s + +c.amount, 0);
+  const balance = totalIn - totalOut;
+
+  // In repair
+  const inRepair = repairs.filter(r => r.status === 'قيد الصيانة').length;
+
+  // Debts
+  const totalDebt = debts.filter(d => d.status !== 'مسدد')
+    .reduce((s, d) => s + (+d.amount - +d.paid), 0);
+
+  document.getElementById('dash-balance').textContent = formatNum(balance);
+  document.getElementById('dash-in-repair').textContent = inRepair;
+  document.getElementById('dash-debts').textContent = formatNum(totalDebt);
+
+  // Recent
+  const recent = [...repairs].sort((a,b) => b.id.localeCompare(a.id)).slice(0, 8);
+  const recentEl = document.getElementById('recent-ops');
+  if (recent.length === 0) {
+    recentEl.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>لا توجد عمليات بعد</p></div>';
+  } else {
+    recentEl.innerHTML = recent.map(r => `
+      <div class="activity-item">
+        <div class="activity-dot" style="background:${r.status==='تم التسليم'?'var(--success)':r.status==='تم الإصلاح'?'var(--info)':'var(--warning)'}"></div>
+        <div class="activity-text">
+          <strong>${r.customer}</strong> — ${r.deviceType} ${r.model || ''}
+          <div style="font-size:11px;color:var(--text-muted)">${r.problem?.substring(0,40)||''}</div>
+        </div>
+        <div class="activity-time">${formatDate(r.date)}</div>
+      </div>
+    `).join('');
+  }
+
+  // Quick summary
+  const qs = document.getElementById('quick-summary');
+  qs.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+        <span style="color:var(--text-muted)">إجمالي العمليات</span>
+        <strong>${repairs.length}</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+        <span style="color:var(--text-muted)">الديون المستحقة</span>
+        <span class="badge badge-danger">${formatNum(totalDebt)} ليرة</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0">
+        <span style="color:var(--text-muted)">رصيد الصندوق</span>
+        <strong style="color:var(--accent)">${formatNum(balance)} ليرة</strong>
+      </div>
+    </div>
+  `;
+  renderSerialLog();
+}
+
+// ==================== SERIAL LOG ====================
+function renderSerialLog() {
+  const el = document.getElementById('serial-log-list');
+  if (!el) return;
+  const settings = DB.getObj(K_SETTINGS, {});
+  const log = (settings.serialLog || []).slice().reverse(); // أحدث أولاً
+
+  if (log.length === 0) {
+    el.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:16px;font-size:13px">لا توجد أرقام مسجلة بعد — اضغط ➕ لإضافة</div>`;
+    return;
+  }
+
+  el.innerHTML = log.map((entry, i) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-card2);border-radius:8px;margin-bottom:8px;border-right:3px solid var(--accent)">
+      <div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:3px">📅 ${formatDate(entry.date)}</div>
+        <div style="font-size:15px;font-weight:700;letter-spacing:1px">🔢 ${entry.from}</div>
+        ${entry.note ? `<div style="font-size:12px;color:var(--text-muted);margin-top:2px">📝 ${entry.note}</div>` : ''}
+      </div>
+      <button class="btn btn-sm btn-danger" onclick="deleteSerial(${log.length - 1 - i})">🗑️</button>
+    </div>
+  `).join('');
+}
+
+function openAddSerial() {
+  document.getElementById('serial-date').value = today();
+  document.getElementById('serial-from').value = '';
+  document.getElementById('serial-note').value = '';
+
+  // اقتراح: الرقم التالي من آخر سجل
+  const settings = DB.getObj(K_SETTINGS, {});
+  const log = settings.serialLog || [];
+  if (log.length > 0) {
+    const last = log[log.length - 1];
+    document.getElementById('serial-from').placeholder = `آخر رقم: ${last.from}`;
+  }
+  openModal('modal-serial');
+}
+
+function saveSerial() {
+  const from = document.getElementById('serial-from').value.trim();
+  if (!from) { toast('يرجى إدخال الرقم', 'error'); return; }
+  const settings = DB.getObj(K_SETTINGS, {});
+  const log = settings.serialLog || [];
+  log.push({
+    date: document.getElementById('serial-date').value || today(),
+    from,
+    note: document.getElementById('serial-note').value.trim(),
+  });
+  settings.serialLog = log;
+  DB.setObj(K_SETTINGS, settings);
+  closeModal('modal-serial');
+  renderSerialLog();
+  toast('✅ تم الحفظ');
+}
+
+function deleteSerial(idx) {
+  const settings = DB.getObj(K_SETTINGS, {});
+  const log = settings.serialLog || [];
+  log.splice(idx, 1);
+  settings.serialLog = log;
+  DB.setObj(K_SETTINGS, settings);
+  renderSerialLog();
+  toast('تم الحذف', 'info');
+}
+function initRepairForm() {
+  document.getElementById('rep-date').value = today();
+  document.getElementById('rep-customer').value = '';
+  document.getElementById('rep-phone').value = '';
+  document.getElementById('rep-model').value = '';
+  document.getElementById('rep-problem').value = '';
+  document.getElementById('rep-parts-cost').value  = '';
+  document.getElementById('rep-paid').value         = '';
+  document.querySelectorAll('input[name="pay-status"]')[0].checked = true;
+  document.getElementById('debt-field').style.display = 'none';
+  document.getElementById('debt-amount-field').style.display = 'none';
+  document.getElementById('rep-debt-who').value = '';
+  document.getElementById('rep-debt-amount').value = '';
+  // reset fault chips
+  document.getElementById('fault-chips').innerHTML = '';
+  document.getElementById('rep-fault-select').value = '';
+  getCustomersDatalist();
+  loadFaultsDropdown();
+}
+
+function toggleDebtField(el) {
+  const show = el.value === 'دين' || el.value === 'جزئي';
+  document.getElementById('debt-field').style.display = show ? '' : 'none';
+  document.getElementById('debt-amount-field').style.display = show ? '' : 'none';
+}
+
+// ==================== FAULTS ====================
+function loadFaultsDropdown() {
+  const faults = DB.get(K_FAULTS).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  const sel = document.getElementById('rep-fault-select');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">➕ اختر عطل من القائمة...</option>' +
+    faults.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
+  // نزيل الـ listener القديم ونضيف جديد
+  sel.onchange = null;
+  sel.addEventListener('change', function() {
+    const val = this.value;
+    if (!val) return;
+    this.value = ''; // reset فوراً
+    const existing = [...document.querySelectorAll('#fault-chips .fault-chip-tag')].map(c=>c.dataset.v);
+    if (existing.includes(val)) return;
+    const chip = document.createElement('span');
+    chip.className = 'fault-chip-tag';
+    chip.dataset.v = val;
+    chip.style.cssText = 'display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:var(--accent);color:#fff;border-radius:20px;font-size:13px;cursor:default';
+    chip.innerHTML = `${val} <span onclick="this.parentElement.remove()" style="cursor:pointer;font-size:16px;line-height:1;opacity:.8">×</span>`;
+    document.getElementById('fault-chips').appendChild(chip);
+  });
+}
+
+function selectFaultChip(sel) {
+  // kept for compatibility — logic moved to loadFaultsDropdown listener
+}
+
+function openFaultsMgr() {
+  renderFaultsMgrList();
+  openModal('modal-faults-mgr');
+}
+
+function renderFaultsMgrList() {
+  const faults = DB.get(K_FAULTS).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  const el = document.getElementById('faults-manager-list');
+  if (!el) return;
+  if (faults.length === 0) {
+    el.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:20px">لا توجد أعطال مضافة بعد</div>`;
+    return;
+  }
+  el.innerHTML = faults.map(f => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-card2);border-radius:8px;margin-bottom:8px">
+      <span style="font-size:14px">⚡ ${f.name}</span>
+      <button class="btn btn-sm btn-danger" onclick="deleteFault('${f.id}')">🗑️</button>
+    </div>
+  `).join('');
+}
+
+function saveFault() {
+  const name = document.getElementById('new-fault-name').value.trim();
+  if (!name) { toast('اكتب اسم العطل', 'error'); return; }
+  const existing = DB.get(K_FAULTS).find(f => f.name === name);
+  if (existing) { toast('هذا العطل موجود مسبقاً', 'error'); return; }
+  const faults = DB.get(K_FAULTS);
+  faults.push({ id: uid(), name });
+  DB.set(K_FAULTS, faults);
+  document.getElementById('new-fault-name').value = '';
+  renderFaultsMgrList();
+  loadFaultsDropdown();
+  toast('✅ تم إضافة العطل');
+}
+
+function deleteFault(id) {
+  DB.set(K_FAULTS, DB.get(K_FAULTS).filter(f => f.id !== id));
+  renderFaultsMgrList();
+  loadFaultsDropdown();
+  toast('تم الحذف', 'info');
+}
+
+function saveRepair() {
+  const customer = document.getElementById('rep-customer').value.trim();
+  if (!customer) { toast('يرجى إدخال اسم الزبون', 'error'); return; }
+
+  // جمع الأعطال من الـ chips + الملاحظة الإضافية
+  const chipFaults = [...document.querySelectorAll('#fault-chips .fault-chip-tag')]
+    .map(c => c.dataset.v).filter(Boolean);
+  const extraNote = document.getElementById('rep-problem').value.trim();
+  const problem = [...chipFaults, extraNote].filter(Boolean).join(' / ') || '-';
+
+  const payStatus  = document.querySelector('input[name="pay-status"]:checked').value;
+  const partsCost  = parseFloat(document.getElementById('rep-parts-cost').value) || 0;
+  const paid       = parseFloat(document.getElementById('rep-paid').value) || 0;
+  const debtAmount = (payStatus === 'دين' || payStatus === 'جزئي')
+    ? (parseFloat(document.getElementById('rep-debt-amount').value) || 0) : 0;
+  const total = paid; // الربح = المقبوض فقط
+
+  const repair = {
+    id: uid(),
+    date:       document.getElementById('rep-date').value || today(),
+    customer,
+    phone:      document.getElementById('rep-phone').value.trim(),
+    deviceType: '',
+    model:      document.getElementById('rep-model').value.trim(),
+    workType:   document.getElementById('rep-work-type').value,
+    problem,
+    parts:      '',
+    partsCost,
+    fee: 0,
+    total,
+    paid,
+    payStatus,
+    debtWho:    document.getElementById('rep-debt-who').value.trim(),
+    status:     'قيد الصيانة',
+  };
+
+  // Save repair
+  const repairs = DB.get(K_REPAIRS);
+  repairs.push(repair);
+  DB.set(K_REPAIRS, repairs);
+
+  // Add to cash or bank
+  if (paid > 0) {
+    const txType = payStatus === 'بنك' ? 'bank_in' : 'in';
+    addCashTransaction(txType, `صيانة: ${customer} - ${repair.deviceType}`, paid, repair.date);
+  }
+
+  // Add to debts if needed
+  if ((payStatus === 'دين' || payStatus === 'جزئي') && debtAmount > 0) {
+    const debts = DB.get(K_DEBTS);
+    debts.push({
+      id: uid(),
+      name: repair.debtWho || customer,
+      amount: debtAmount,
+      paid: 0,
+      date: repair.date,
+      note: `صيانة: ${repair.deviceType} ${repair.model}`,
+      status: 'مستحق',
+      repairId: repair.id,
+    });
+    DB.set(K_DEBTS, debts);
+  }
+
+  // Auto-add customer
+  autoAddCustomer(customer, repair.phone);
+
+  toast('✅ تم حفظ العملية بنجاح');
+  initRepairForm();
+  renderDashboard();
+}
+
+function autoAddCustomer(name, phone) {
+  const customers = DB.get(K_CUSTOMERS);
+  if (!customers.find(c => c.name === name)) {
+    customers.push({ id: uid(), name, phone: phone || '', type: 'زبون' });
+    DB.set(K_CUSTOMERS, customers);
+  }
+}
+
+function addCashTransaction(type, desc, amount, date, person='') {
+  const cash = DB.get(K_CASH);
+  cash.push({ id: uid(), type, desc, amount, person, date: date || today() });
+  DB.set(K_CASH, cash);
+}
+
+// ==================== DEVICES ====================
+function renderDevices() {
+  const repairs = DB.get(K_REPAIRS);
+  const search = document.getElementById('dev-search').value.toLowerCase();
+  const statusF = '';
+  const fromF = '';
+  const toF = '';
+
+  let list = repairs.filter(r => {
+    if (search && !(
+      r.customer?.toLowerCase().includes(search) ||
+      r.deviceType?.toLowerCase().includes(search) ||
+      r.model?.toLowerCase().includes(search) ||
+      r.problem?.toLowerCase().includes(search) ||
+      r.phone?.includes(search)
+    )) return false;
+    if (statusF && r.status !== statusF) return false;
+    if (fromF && r.date < fromF) return false;
+    if (toF && r.date > toF) return false;
+    return true;
+  }).sort((a,b) => b.date.localeCompare(a.date));
+
+  const tbody = document.getElementById('devices-tbody');
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state"><div class="icon">📭</div><p>لا توجد بيانات</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map((r, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td>${formatDate(r.date)}</td>
+      <td><strong>${r.customer}</strong><br><span style="font-size:11px;color:var(--text-muted)">${r.phone||''}</span></td>
+      <td>${r.phone||'-'}</td>
+      <td>${r.deviceType||'-'}<br><span style="font-size:11px;color:var(--text-muted)">${r.model||''}</span></td>
+      <td style="max-width:150px"><span title="${r.problem}">${(r.problem||'').substring(0,30)}${r.problem?.length>30?'...':''}</span></td>
+      <td><strong style="color:var(--accent)">${formatNum(r.total)} ل</strong></td>
+      <td>${formatNum(r.paid)} ل</td>
+      <td>${getPayBadge(r.payStatus)}</td>
+      <td>${getStatusBadge(r.status)}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-sm btn-secondary" onclick="editRepair('${r.id}')" title="تعديل">✏️</button>
+          <button class="btn btn-sm btn-success" onclick="showInvoice('${r.id}')" title="فاتورة">🖨️</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteRepair('${r.id}')" title="حذف">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function getPayBadge(s) {
+  const m = { 'كاش':'badge-success', 'بنك':'badge-info', 'دين':'badge-danger', 'جزئي':'badge-warning' };
+  return `<span class="badge ${m[s]||'badge-info'}">${s||'-'}</span>`;
+}
+
+function getStatusBadge(s) {
+  const m = { 'قيد الصيانة':'badge-warning', 'تم الإصلاح':'badge-info', 'تم التسليم':'badge-success' };
+  return `<span class="badge ${m[s]||'badge-info'}">${s||'-'}</span>`;
+}
+
+function editRepair(id) {
+  editRepairId = id;
+  const repairs = DB.get(K_REPAIRS);
+  const r = repairs.find(x => x.id === id);
+  if (!r) return;
+
+  document.getElementById('edit-repair-form').innerHTML = `
+    <div class="form-group">
+      <label>التاريخ</label>
+      <input type="date" id="er-date" value="${r.date}">
+    </div>
+    <div class="form-group">
+      <label>الزبون</label>
+      <input type="text" id="er-customer" value="${r.customer}" list="customers-list">
+    </div>
+    <div class="form-group">
+      <label>الهاتف</label>
+      <input type="tel" id="er-phone" value="${r.phone||''}">
+    </div>
+    <div class="form-group">
+      <label>نوع الجهاز</label>
+      <input type="text" id="er-type" value="${r.deviceType||''}">
+    </div>
+    <div class="form-group">
+      <label>الموديل</label>
+      <input type="text" id="er-model" value="${r.model||''}">
+    </div>
+    <div class="form-group">
+      <label>نوع العمل</label>
+      <select id="er-work-type">
+        ${['هاردوير','سوفتوير','هاردوير وسوفتوير'].map(v => `<option ${r.workType===v?'selected':''}>${v}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group full">
+      <label>العطل</label>
+      <textarea id="er-problem">${r.problem||''}</textarea>
+    </div>
+    <div class="form-group">
+      <label>القطع</label>
+      <input type="text" id="er-parts" value="${r.parts||''}">
+    </div>
+    <div class="form-group">
+      <label>سعر القطع (ليرة)</label>
+      <input type="number" id="er-parts-cost" value="${r.partsCost||0}">
+    </div>
+    <div class="form-group">
+      <label>المدفوع (ليرة)</label>
+      <input type="number" id="er-paid" value="${r.paid||0}">
+    </div>
+  `;
+  openModal('modal-edit-repair');
+}
+
+function saveEditRepair() {
+  if (!editRepairId) return;
+  const repairs = DB.get(K_REPAIRS);
+  const idx = repairs.findIndex(x => x.id === editRepairId);
+  if (idx === -1) return;
+
+  const partsCost = parseFloat(document.getElementById('er-parts-cost').value) || 0;
+  const paid      = parseFloat(document.getElementById('er-paid').value) || 0;
+
+  repairs[idx] = {
+    ...repairs[idx],
+    date:       document.getElementById('er-date').value,
+    customer:   document.getElementById('er-customer').value,
+    phone:      document.getElementById('er-phone').value,
+    deviceType: document.getElementById('er-type').value,
+    model:      document.getElementById('er-model').value,
+    workType:   document.getElementById('er-work-type').value,
+    problem:    document.getElementById('er-problem').value,
+    parts:      document.getElementById('er-parts').value,
+    partsCost,
+    fee:   0,
+    total: paid,
+    paid,
+  };
+
+  DB.set(K_REPAIRS, repairs);
+  closeModal('modal-edit-repair');
+  renderDevices();
+  toast('✅ تم تحديث العملية');
+}
+
+function deleteRepair(id) {
+  document.getElementById('confirm-message').textContent = 'هل أنت متأكد من حذف هذه العملية؟ لا يمكن التراجع.';
+  document.getElementById('confirm-ok').onclick = () => {
+    const repairs = DB.get(K_REPAIRS).filter(r => r.id !== id);
+    DB.set(K_REPAIRS, repairs);
+    closeModal('modal-confirm');
+    renderDevices();
+    renderDashboard();
+    toast('تم الحذف', 'info');
+  };
+  openModal('modal-confirm');
+}
+
+// ==================== INVOICE ====================
+function showInvoice(id) {
+  const repairs = DB.get(K_REPAIRS);
+  const r = repairs.find(x => x.id === id);
+  if (!r) return;
+  const settings = DB.getObj(K_SETTINGS, {});
+
+  const remaining = (r.total || 0) - (r.paid || 0);
+
+  document.getElementById('invoice-content').innerHTML = `
+    <div style="text-align:center;padding:20px 0;border-bottom:1px solid var(--border);margin-bottom:20px">
+      <div style="font-size:22px;font-weight:900;margin-bottom:4px">${settings.shopName || 'محل الصيانة'}</div>
+      <div style="font-size:12px;color:var(--text-muted)">${settings.shopPhone||''} | ${settings.shopAddress||''}</div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px;color:var(--text-muted);width:40%">التاريخ</td>
+        <td style="padding:8px"><strong>${formatDate(r.date)}</strong></td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px;color:var(--text-muted)">اسم الزبون</td>
+        <td style="padding:8px"><strong>${r.customer}</strong></td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px;color:var(--text-muted)">رقم الهاتف</td>
+        <td style="padding:8px">${r.phone||'-'}</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px;color:var(--text-muted)">الجهاز</td>
+        <td style="padding:8px">${r.deviceType||'-'} ${r.model||''}</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px;color:var(--text-muted)">نوع العمل</td>
+        <td style="padding:8px">${r.workType||'-'}</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px;color:var(--text-muted)">وصف العطل</td>
+        <td style="padding:8px">${r.problem||'-'}</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px;color:var(--text-muted)">القطع المستخدمة</td>
+        <td style="padding:8px">${r.parts||'-'}</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px;color:var(--text-muted)">سعر القطع</td>
+        <td style="padding:8px">${formatNum(r.partsCost)} ليرة</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px;color:var(--text-muted)">أجرة الصيانة</td>
+        <td style="padding:8px">${formatNum(r.fee)} ليرة</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px;color:var(--text-muted)">الإجمالي</td>
+        <td style="padding:8px"><strong style="font-size:16px">${formatNum(r.total)} ليرة</strong></td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px;color:var(--text-muted)">المدفوع</td>
+        <td style="padding:8px;color:var(--success)"><strong>${formatNum(r.paid)} ليرة</strong></td>
+      </tr>
+      <tr>
+        <td style="padding:8px;color:var(--text-muted)">المتبقي</td>
+        <td style="padding:8px;color:${remaining>0?'var(--danger)':'var(--success)'}">
+          <strong>${formatNum(remaining)} ليرة</strong>
+        </td>
+      </tr>
+    </table>
+    ${settings.invoiceNote ? `<div style="margin-top:16px;padding:12px;background:var(--bg-card2);border-radius:8px;font-size:12px;color:var(--text-muted)">${settings.invoiceNote}</div>` : ''}
+  `;
+
+  openModal('modal-invoice');
+}
+
+function printInvoice() {
+  const settings = DB.getObj(K_SETTINGS, {});
+  const content = document.getElementById('invoice-content').innerHTML;
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html dir="rtl"><head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+      body { font-family: 'Cairo', sans-serif; padding: 40px; direction: rtl; max-width: 600px; margin: auto; }
+      table { width: 100%; border-collapse: collapse; }
+      td { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+      .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+      h1 { font-size: 28px; margin: 0; }
+      .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #888; border-top: 1px solid #eee; padding-top: 20px; }
+      @media print { button { display: none !important; } }
+    </style></head><body>
+    <div class="header">
+      <h1>${settings.shopName || 'محل الصيانة'}</h1>
+      <p>${settings.shopPhone || ''} | ${settings.shopAddress || ''}</p>
+    </div>
+    <h2 style="text-align:center;margin:20px 0;font-size:18px">فاتورة صيانة</h2>
+    ${content}
+    <div class="footer">${settings.invoiceNote || 'شكراً لتعاملكم معنا'}</div>
+    <div style="margin-top:20px;text-align:center">
+      <button onclick="window.print()" style="padding:10px 30px;font-size:16px;font-family:Cairo,sans-serif;cursor:pointer">🖨️ طباعة</button>
+    </div>
+    </body></html>
+  `);
+  w.document.close();
+}
+
+// ==================== CASH ====================
+function renderCash() {
+  const all = DB.get(K_CASH).sort((a,b) => b.date.localeCompare(a.date));
+  const filter = document.getElementById('cash-filter')?.value || 'all';
+
+  // كاش
+  const cashIn  = all.filter(c => c.type === 'in').reduce((s,c) => s + +c.amount, 0);
+  const cashOut = all.filter(c => c.type === 'out').reduce((s,c) => s + +c.amount, 0);
+  document.getElementById('cash-in-total').textContent  = formatNum(cashIn);
+  document.getElementById('cash-out-total').textContent = formatNum(cashOut);
+  document.getElementById('cash-balance').textContent   = formatNum(cashIn - cashOut);
+
+  // بنك
+  const bankIn  = all.filter(c => c.type === 'bank_in').reduce((s,c) => s + +c.amount, 0);
+  const bankOut = all.filter(c => c.type === 'bank_out').reduce((s,c) => s + +c.amount, 0);
+  document.getElementById('bank-in-total').textContent  = formatNum(bankIn);
+  document.getElementById('bank-out-total').textContent = formatNum(bankOut);
+  document.getElementById('bank-balance').textContent   = formatNum(bankIn - bankOut);
+
+  // دولار
+  const usdIn  = all.filter(c => c.type === 'usd_in').reduce((s,c) => s + +c.usdAmount, 0);
+  const usdOut = all.filter(c => c.type === 'usd_out').reduce((s,c) => s + +c.usdAmount, 0);
+  document.getElementById('usd-in-total').textContent  = usdIn.toFixed(2);
+  document.getElementById('usd-out-total').textContent = usdOut.toFixed(2);
+  const usdBal = usdIn - usdOut;
+  document.getElementById('usd-balance').textContent   = usdBal.toFixed(2);
+
+  // فلترة الجدول
+  const shown = filter === 'cash' ? all.filter(c => c.type==='in'||c.type==='out')
+              : filter === 'bank' ? all.filter(c => c.type==='bank_in'||c.type==='bank_out')
+              : filter === 'usd'  ? all.filter(c => c.type==='usd_in'||c.type==='usd_out')
+              : all;
+
+  const tbody = document.getElementById('cash-tbody');
+  if (shown.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="icon">📭</div><p>لا توجد معاملات</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = shown.map(c => {
+    const isUsd  = c.type === 'usd_in' || c.type === 'usd_out';
+    const isIn   = c.type === 'in' || c.type === 'bank_in' || c.type === 'usd_in';
+    const isBank = c.type === 'bank_in' || c.type === 'bank_out';
+    const mediaBadge = isUsd  ? '<span class="badge" style="background:#b45309">💲 دولار</span>'
+                     : isBank ? '<span class="badge badge-info">🏦 بنك</span>'
+                     :          '<span class="badge badge-success">💵 كاش</span>';
+    const typeBadge = isIn
+      ? '<span class="badge badge-success">⬆️ مقبوض</span>'
+      : '<span class="badge badge-danger">⬇️ مدفوع</span>';
+
+    let amountCell;
+    if (isUsd) {
+      const usdAmt = +c.usdAmount;
+      const liraAmt = +c.amount; // تكلفة الليرة عند الشراء
+      amountCell = `<strong style="color:${isIn?'var(--success)':'var(--danger)'}">${isIn?'+':'−'}${usdAmt.toFixed(2)}$</strong>
+        ${isIn && liraAmt ? `<br><small style="color:var(--text-muted)">كلفة: ${formatNum(liraAmt)} ل</small>` : ''}`;
+    } else {
+      amountCell = `<strong style="color:${isIn?'var(--success)':'var(--danger)'}">${isIn?'+':'−'}${formatNum(c.amount)} ل</strong>`;
+    }
+
+    return `
+    <tr>
+      <td>${formatDate(c.date)}</td>
+      <td>${mediaBadge}</td>
+      <td>${typeBadge}</td>
+      <td>${c.desc}</td>
+      <td>${c.person ? `<span class="badge badge-info">👤 ${c.person}</span>` : '-'}</td>
+      <td>${amountCell}</td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteCash('${c.id}')">🗑️</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openAddCash(type) {
+  document.getElementById('cash-type').value = type;
+  const titles = { in:'➕ مقبوض كاش', out:'➖ مدفوع كاش', bank_in:'🏦 مقبوض بنك', bank_out:'🏦 مدفوع بنك' };
+  document.getElementById('cash-modal-title').textContent = titles[type] || '➕ إضافة معاملة';
+  document.getElementById('cash-desc').value = '';
+  document.getElementById('cash-person').value = '';
+  document.getElementById('cash-amount').value = '';
+  document.getElementById('cash-date').value = today();
+  document.getElementById('cash-person-group').style.display = (type === 'out' || type === 'bank_out') ? '' : 'none';
+  getCustomersDatalist();
+  openModal('modal-cash');
+}
+
+function saveCash() {
+  const desc = document.getElementById('cash-desc').value.trim();
+  const amount = parseFloat(document.getElementById('cash-amount').value);
+  const type = document.getElementById('cash-type').value;
+  if (!desc || !amount) { toast('يرجى إدخال الوصف والمبلغ', 'error'); return; }
+  const person = type === 'out' ? (document.getElementById('cash-person').value.trim() || '') : '';
+  const cash = DB.get(K_CASH);
+  cash.push({ id: uid(), type, desc, amount, person, date: document.getElementById('cash-date').value || today() });
+  DB.set(K_CASH, cash);
+  closeModal('modal-cash');
+  renderCash();
+  toast('✅ تم إضافة المعاملة');
+}
+
+function deleteCash(id) {
+  document.getElementById('confirm-message').textContent = 'هل أنت متأكد من حذف هذه المعاملة؟';
+  document.getElementById('confirm-ok').onclick = () => {
+    DB.set(K_CASH, DB.get(K_CASH).filter(c => c.id !== id));
+    closeModal('modal-confirm');
+    renderCash();
+    toast('تم الحذف', 'info');
+  };
+  openModal('modal-confirm');
+}
+
+function openTransfer() {
+  document.getElementById('transfer-amount').value = '';
+  document.getElementById('transfer-date').value = today();
+  document.getElementById('transfer-note').value = '';
+  document.querySelectorAll('input[name="transfer-dir"]')[0].checked = true;
+  updateTransferLabels();
+  openModal('modal-transfer');
+}
+
+function updateTransferLabels() {
+  const dir = document.querySelector('input[name="transfer-dir"]:checked').value;
+  const lbl1 = document.getElementById('lbl-cash-to-bank');
+  const lbl2 = document.getElementById('lbl-bank-to-cash');
+  if (dir === 'cash_to_bank') {
+    lbl1.style.borderColor = 'var(--accent)';
+    lbl2.style.borderColor = 'var(--border)';
+  } else {
+    lbl1.style.borderColor = 'var(--border)';
+    lbl2.style.borderColor = 'var(--accent)';
+  }
+}
+
+function saveTransfer() {
+  const amount = parseFloat(document.getElementById('transfer-amount').value);
+  if (!amount || amount <= 0) { toast('يرجى إدخال مبلغ صحيح', 'error'); return; }
+  const dir  = document.querySelector('input[name="transfer-dir"]:checked').value;
+  const date = document.getElementById('transfer-date').value || today();
+  const note = document.getElementById('transfer-note').value.trim();
+  const label = note ? `تحويل: ${note}` : 'تحويل بين الصندوق والبنك';
+
+  const cash = DB.get(K_CASH);
+  if (dir === 'cash_to_bank') {
+    // خصم من الكاش، إضافة للبنك
+    cash.push({ id: uid(), type: 'out',     desc: `${label} (سحب من الصندوق)`, amount, person: '', date });
+    cash.push({ id: uid(), type: 'bank_in', desc: `${label} (إيداع في البنك)`,  amount, person: '', date });
+  } else {
+    // خصم من البنك، إضافة للكاش
+    cash.push({ id: uid(), type: 'bank_out', desc: `${label} (سحب من البنك)`,     amount, person: '', date });
+    cash.push({ id: uid(), type: 'in',       desc: `${label} (إيداع في الصندوق)`, amount, person: '', date });
+  }
+  DB.set(K_CASH, cash);
+  closeModal('modal-transfer');
+  renderCash();
+  toast('✅ تم التحويل بنجاح');
+}
+
+// ==================== DOLLAR ====================
+function openDollarModal(opType) {
+  // لو ما اتمرر opType افتح نافذة اختيار
+  if (!opType) {
+    // نستعمل confirm modal مبسط — نفتح مباشرة نافذة الشراء كـ default
+    opType = 'buy';
+  }
+  document.getElementById('dollar-op-type').value = opType;
+  document.getElementById('dollar-usd-amount').value = '';
+  document.getElementById('dollar-pay-amount').value = '';
+  document.getElementById('dollar-pay-to').value = '';
+  document.getElementById('dollar-rate').value = '';
+  document.getElementById('dollar-note').value = '';
+  document.getElementById('dollar-date').value = today();
+  document.getElementById('dollar-lira-preview').textContent = 'المبلغ بالليرة: —';
+
+  if (opType === 'buy') {
+    document.getElementById('dollar-modal-title').textContent = '💲 شراء دولار';
+    document.getElementById('dollar-buy-section').style.display = '';
+    document.getElementById('dollar-pay-section').style.display = 'none';
+    document.getElementById('dollar-rate-group').style.display = '';
+    document.getElementById('dollar-save-btn').textContent = '🛒 تسجيل الشراء';
+    // تحديث المعاينة عند الكتابة
+    document.getElementById('dollar-usd-amount').oninput = updateDollarPreview;
+    document.getElementById('dollar-rate').oninput        = updateDollarPreview;
+  } else {
+    document.getElementById('dollar-modal-title').textContent = '💸 دفع بالدولار';
+    document.getElementById('dollar-buy-section').style.display = 'none';
+    document.getElementById('dollar-pay-section').style.display = '';
+    document.getElementById('dollar-save-btn').textContent = '💸 تسجيل الدفع';
+  }
+  getCustomersDatalist();
+  openModal('modal-dollar');
+}
+
+function updateDollarPreview() {
+  const usd  = parseFloat(document.getElementById('dollar-usd-amount').value) || 0;
+  const rate = parseFloat(document.getElementById('dollar-rate').value) || 0;
+  const lira = usd * rate;
+  document.getElementById('dollar-lira-preview').innerHTML =
+    lira > 0
+      ? `ستُخصم من الصندوق: <strong style="color:var(--danger)">${formatNum(lira)} ليرة</strong>`
+      : 'المبلغ بالليرة: —';
+}
+
+function saveDollarOp() {
+  const opType = document.getElementById('dollar-op-type').value;
+  const date   = document.getElementById('dollar-date').value || today();
+  const note   = document.getElementById('dollar-note').value.trim();
+  const cash   = DB.get(K_CASH);
+
+  if (opType === 'buy') {
+    const usdAmt = parseFloat(document.getElementById('dollar-usd-amount').value);
+    const rate   = parseFloat(document.getElementById('dollar-rate').value);
+    if (!usdAmt || usdAmt <= 0) { toast('أدخل مبلغ الدولار', 'error'); return; }
+    if (!rate   || rate   <= 0) { toast('أدخل سعر الصرف',    'error'); return; }
+    const liraAmt = usdAmt * rate;
+    const desc    = note ? `شراء دولار — ${note}` : `شراء دولار (سعر صرف ${formatNum(rate)} ل/$)`;
+
+    // خصم من الصندوق بالليرة
+    cash.push({ id: uid(), type: 'out', desc: `${desc} — خصم ليرة`, amount: liraAmt, person: '', date });
+    // إضافة دولار
+    cash.push({ id: uid(), type: 'usd_in', desc, amount: liraAmt, usdAmount: usdAmt, rate, person: '', date });
+
+  } else {
+    const usdAmt = parseFloat(document.getElementById('dollar-pay-amount').value);
+    const to     = document.getElementById('dollar-pay-to').value.trim();
+    if (!usdAmt || usdAmt <= 0) { toast('أدخل مبلغ الدولار المدفوع', 'error'); return; }
+    const desc = note
+      ? `دفع دولار — ${note}`
+      : `دفع دولار${to ? ' لـ ' + to : ''}`;
+
+    cash.push({ id: uid(), type: 'usd_out', desc, amount: 0, usdAmount: usdAmt, person: to, date });
+  }
+
+  DB.set(K_CASH, cash);
+  closeModal('modal-dollar');
+  renderCash();
+  toast('✅ تم التسجيل بنجاح');
+}
+
+// ==================== EMPLOYEES ====================
+function renderEmployees() {
+  const employees = DB.get(K_EMPLOYEES).sort((a,b) => (a.name||'').localeCompare(b.name||''));
+  const monthStr  = today().slice(0,7);
+
+  // إجماليات
+  const allWithdrawals = employees.flatMap(e => e.withdrawals || []);
+  const totalAll   = allWithdrawals.reduce((s,w) => s + +w.amount, 0);
+  const totalMonth = allWithdrawals.filter(w => w.date?.startsWith(monthStr)).reduce((s,w) => s + +w.amount, 0);
+
+  document.getElementById('emp-count').textContent           = employees.length;
+  document.getElementById('emp-total-withdrawn').textContent = formatNum(totalAll);
+  document.getElementById('emp-month-withdrawn').textContent = formatNum(totalMonth);
+
+  const el = document.getElementById('employees-list');
+  if (employees.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">👷</div><p>لا يوجد موظفون — أضف موظفاً أولاً</p></div>`;
+    return;
+  }
+
+  el.innerHTML = employees.map(emp => {
+    const withdrawals = (emp.withdrawals || []).sort((a,b) => b.date.localeCompare(a.date));
+    const total = withdrawals.reduce((s,w) => s + +w.amount, 0);
+    const monthTotal = withdrawals.filter(w => w.date?.startsWith(monthStr)).reduce((s,w) => s + +w.amount, 0);
+    const isOpen = emp._open;
+
+    return `
+    <div class="card" style="margin-bottom:16px">
+      <!-- رأس الموظف -->
+      <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleEmployeeCard('${emp.id}')">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:42px;height:42px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">👷</div>
+          <div>
+            <div style="font-size:16px;font-weight:700">${emp.name}</div>
+            ${emp.phone ? `<div style="font-size:12px;color:var(--text-muted)">${emp.phone}</div>` : ''}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="text-align:center">
+            <div style="font-size:11px;color:var(--text-muted)">الشهر</div>
+            <div style="font-size:14px;font-weight:700;color:var(--warning)">${formatNum(monthTotal)} ل</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:11px;color:var(--text-muted)">الإجمالي</div>
+            <div style="font-size:14px;font-weight:700;color:var(--danger)">${formatNum(total)} ل</div>
+          </div>
+          <button class="btn btn-sm btn-primary" onclick="event.stopPropagation();openEmpWithdraw('${emp.id}')">💸 سحب</button>
+          <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();editEmployee('${emp.id}')">✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteEmployee('${emp.id}')">🗑️</button>
+          <span style="color:var(--text-muted);font-size:18px">${isOpen ? '▲' : '▼'}</span>
+        </div>
+      </div>
+
+      <!-- سجل السحوبات -->
+      ${isOpen ? `
+      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px">
+        ${withdrawals.length === 0
+          ? `<div style="text-align:center;color:var(--text-muted);padding:12px">لا توجد سحوبات مسجلة</div>`
+          : `<div style="display:flex;flex-direction:column;gap:6px">
+              ${withdrawals.map((w,i) => `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-card2);border-radius:8px;border-right:3px solid var(--danger)">
+                  <div>
+                    <div style="font-size:13px;font-weight:600">${w.note || 'سحب'}</div>
+                    <div style="font-size:11px;color:var(--text-muted)">${formatDate(w.date)} — ${w.method === 'بنك' ? '🏦 بنك' : '💵 كاش'}</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <strong style="color:var(--danger)">− ${formatNum(w.amount)} ل</strong>
+                    <button class="btn btn-sm btn-danger" onclick="deleteEmpWithdrawal('${emp.id}',${i})">🗑️</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>`
+        }
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function toggleEmployeeCard(id) {
+  const employees = DB.get(K_EMPLOYEES);
+  const idx = employees.findIndex(e => e.id === id);
+  if (idx === -1) return;
+  employees[idx]._open = !employees[idx]._open;
+  // تحديث محلي بدون حفظ Firestore
+  cache.employees = employees;
+  renderEmployees();
+}
+
+function openAddEmployee() {
+  document.getElementById('emp-edit-id').value = '';
+  document.getElementById('emp-modal-title').textContent = '➕ إضافة موظف';
+  document.getElementById('emp-name').value  = '';
+  document.getElementById('emp-phone').value = '';
+  document.getElementById('emp-note').value  = '';
+  openModal('modal-employee');
+}
+
+function editEmployee(id) {
+  const e = DB.get(K_EMPLOYEES).find(x => x.id === id);
+  if (!e) return;
+  document.getElementById('emp-edit-id').value = id;
+  document.getElementById('emp-modal-title').textContent = '✏️ تعديل موظف';
+  document.getElementById('emp-name').value  = e.name  || '';
+  document.getElementById('emp-phone').value = e.phone || '';
+  document.getElementById('emp-note').value  = e.note  || '';
+  openModal('modal-employee');
+}
+
+function saveEmployee() {
+  const name = document.getElementById('emp-name').value.trim();
+  if (!name) { toast('يرجى إدخال اسم الموظف', 'error'); return; }
+  const editId = document.getElementById('emp-edit-id').value;
+  const employees = DB.get(K_EMPLOYEES);
+  if (editId) {
+    const idx = employees.findIndex(e => e.id === editId);
+    if (idx >= 0) { employees[idx].name = name; employees[idx].phone = document.getElementById('emp-phone').value.trim(); employees[idx].note = document.getElementById('emp-note').value.trim(); }
+  } else {
+    employees.push({ id: uid(), name, phone: document.getElementById('emp-phone').value.trim(), note: document.getElementById('emp-note').value.trim(), withdrawals: [] });
+  }
+  DB.set(K_EMPLOYEES, employees);
+  closeModal('modal-employee');
+  renderEmployees();
+  toast('✅ تم الحفظ');
+}
+
+function deleteEmployee(id) {
+  document.getElementById('confirm-message').textContent = 'هل أنت متأكد من حذف هذا الموظف وكل سحوباته؟';
+  document.getElementById('confirm-ok').onclick = () => {
+    DB.set(K_EMPLOYEES, DB.get(K_EMPLOYEES).filter(e => e.id !== id));
+    closeModal('modal-confirm');
+    renderEmployees();
+    toast('تم الحذف', 'info');
+  };
+  openModal('modal-confirm');
+}
+
+function openEmpWithdraw(id) {
+  const e = DB.get(K_EMPLOYEES).find(x => x.id === id);
+  if (!e) return;
+  document.getElementById('emp-withdraw-id').value = id;
+  document.getElementById('emp-withdraw-title').textContent = `💸 سحب — ${e.name}`;
+  document.getElementById('emp-withdraw-amount').value = '';
+  document.getElementById('emp-withdraw-date').value   = today();
+  document.getElementById('emp-withdraw-note').value   = '';
+  document.querySelectorAll('input[name="emp-pay-method"]')[0].checked = true;
+  openModal('modal-emp-withdraw');
+}
+
+function saveEmpWithdraw() {
+  const btn = document.querySelector('#modal-emp-withdraw .btn-danger');
+  if (btn?.disabled) return;
+  if (btn) btn.disabled = true;
+
+  const id     = document.getElementById('emp-withdraw-id').value;
+  const amount = parseFloat(document.getElementById('emp-withdraw-amount').value);
+  if (!amount) { toast('يرجى إدخال المبلغ', 'error'); if(btn) btn.disabled=false; return; }
+
+  const employees = DB.get(K_EMPLOYEES);
+  const idx = employees.findIndex(e => e.id === id);
+  if (idx === -1) { if(btn) btn.disabled=false; return; }
+
+  const method = document.querySelector('input[name="emp-pay-method"]:checked').value;
+  const date   = document.getElementById('emp-withdraw-date').value || today();
+  const note   = document.getElementById('emp-withdraw-note').value.trim();
+
+  if (!employees[idx].withdrawals) employees[idx].withdrawals = [];
+  employees[idx].withdrawals.push({ amount, method, date, note });
+
+  DB.set(K_EMPLOYEES, employees);
+
+  const cashType = method === 'بنك' ? 'bank_out' : 'out';
+  addCashTransaction(cashType, `سحب موظف: ${employees[idx].name}${note ? ' — ' + note : ''}`, amount, date, employees[idx].name);
+
+  closeModal('modal-emp-withdraw');
+  renderEmployees();
+  toast('✅ تم تسجيل السحب');
+  setTimeout(() => { if(btn) btn.disabled=false; }, 1000);
+}
+
+function deleteEmpWithdrawal(empId, widx) {
+  document.getElementById('confirm-message').textContent = 'حذف هذا السحب؟';
+  document.getElementById('confirm-ok').onclick = () => {
+    const employees = DB.get(K_EMPLOYEES);
+    const idx = employees.findIndex(e => e.id === empId);
+    if (idx >= 0 && employees[idx].withdrawals) {
+      employees[idx].withdrawals.splice(widx, 1);
+      DB.set(K_EMPLOYEES, employees);
+    }
+    closeModal('modal-confirm');
+    renderEmployees();
+    toast('تم الحذف', 'info');
+  };
+  openModal('modal-confirm');
+}
+
+// ==================== EXPENSES ====================
+function getExpCats() {
+  return DB.get(K_EXP_CATS).sort((a,b) => (a.name||'').localeCompare(b.name||''));
+}
+
+function getCatColor(name) {
+  // لون ثابت لكل تصنيف بناءً على اسمه
+  const colors = ['var(--accent2)','var(--info)','var(--warning)','var(--success)','var(--accent)','#7c3aed','#0f766e','#b45309'];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return colors[Math.abs(hash) % colors.length];
+}
+
+function loadExpCatsDropdown(selectedVal) {
+  const cats = getExpCats();
+  const sel  = document.getElementById('expense-cat');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">-- اختر تصنيف --</option>' +
+    cats.map(c => `<option value="${c.name}" ${c.name===selectedVal?'selected':''}>${c.name}</option>`).join('');
+}
+
+function renderExpenseCatFilter() {
+  const cats = getExpCats();
+  const sel  = document.getElementById('exp-filter-cat');
+  if (!sel) return;
+  const cur  = sel.value;
+  sel.innerHTML = '<option value="">كل التصنيفات</option>' +
+    cats.map(c => `<option value="${c.name}" ${c.name===cur?'selected':''}>${c.name}</option>`).join('');
+}
+
+function renderExpenses() {
+  const all = DB.get(K_EXPENSES).sort((a,b) => b.date.localeCompare(a.date));
+  const monthStr = today().slice(0,7);
+
+  renderExpenseCatFilter();
+
+  const catF   = document.getElementById('exp-filter-cat')?.value  || '';
+  const monthF = document.getElementById('exp-filter-month')?.value || '';
+
+  // ملء فلتر الأشهر
+  const months = [...new Set(all.map(e => e.date?.slice(0,7)).filter(Boolean))].sort().reverse();
+  const mSel = document.getElementById('exp-filter-month');
+  if (mSel) {
+    const cur = mSel.value;
+    mSel.innerHTML = '<option value="">كل الأشهر</option>' +
+      months.map(m => `<option value="${m}" ${m===cur?'selected':''}>${m}</option>`).join('');
+  }
+
+  // إجماليات
+  const monthTotal = all.filter(e => e.date?.startsWith(monthStr)).reduce((s,e) => s + +e.amount, 0);
+  const allTotal   = all.reduce((s,e) => s + +e.amount, 0);
+  document.getElementById('exp-month-total').textContent = formatNum(monthTotal);
+  document.getElementById('exp-all-total').textContent   = formatNum(allTotal);
+  document.getElementById('exp-count').textContent       = all.length;
+
+  // تطبيق الفلتر
+  const shown = all.filter(e => {
+    if (catF   && e.category !== catF)           return false;
+    if (monthF && !e.date?.startsWith(monthF))   return false;
+    return true;
+  });
+
+  // جدول
+  const tbody = document.getElementById('exp-tbody');
+  if (shown.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="icon">📭</div><p>لا توجد مصاريف</p></div></td></tr>`;
+  } else {
+    tbody.innerHTML = shown.map(e => {
+      const color = getCatColor(e.category || '');
+      const payBadge = e.payMethod === 'بنك'
+        ? '<span class="badge badge-info">🏦 بنك</span>'
+        : '<span class="badge badge-success">💵 كاش</span>';
+      return `<tr>
+        <td>${formatDate(e.date)}</td>
+        <td><span class="badge" style="background:${color}">🏷️ ${e.category||'-'}</span></td>
+        <td>${e.desc}</td>
+        <td>${e.to ? `<span class="badge badge-info">👤 ${e.to}</span>` : '-'}</td>
+        <td>${payBadge}</td>
+        <td style="color:var(--danger)"><strong>− ${formatNum(e.amount)} ل</strong></td>
+        <td style="display:flex;gap:4px">
+          <button class="btn btn-sm btn-secondary" onclick="editExpense('${e.id}')">✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteExpense('${e.id}')">🗑️</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ملخص حسب التصنيف
+  const byCat = {};
+  all.forEach(e => { byCat[e.category] = (byCat[e.category]||0) + +e.amount; });
+  const catEl = document.getElementById('exp-by-cat');
+  if (Object.keys(byCat).length === 0) {
+    catEl.innerHTML = `<div style="color:var(--text-muted);text-align:center;padding:12px">لا توجد بيانات</div>`;
+  } else {
+    catEl.innerHTML = Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([cat, amt]) => {
+      const color = getCatColor(cat);
+      const pct = allTotal > 0 ? Math.round(amt/allTotal*100) : 0;
+      return `
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span>🏷️ ${cat}</span>
+            <strong>${formatNum(amt)} ل (${pct}%)</strong>
+          </div>
+          <div style="height:6px;background:var(--bg-card2);border-radius:4px">
+            <div style="height:6px;width:${pct}%;background:${color};border-radius:4px;transition:width .3s"></div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+}
+
+function openAddExpense() {
+  document.getElementById('expense-edit-id').value = '';
+  document.getElementById('expense-modal-title').textContent = '➕ إضافة مصروف';
+  document.getElementById('expense-desc').value   = '';
+  document.getElementById('expense-to').value     = '';
+  document.getElementById('expense-amount').value = '';
+  document.getElementById('expense-date').value   = today();
+  document.getElementById('expense-note').value   = '';
+  document.querySelectorAll('input[name="exp-pay-method"]')[0].checked = true;
+  loadExpCatsDropdown('');
+  openModal('modal-expense');
+}
+
+function editExpense(id) {
+  const e = DB.get(K_EXPENSES).find(x => x.id === id);
+  if (!e) return;
+  document.getElementById('expense-edit-id').value = id;
+  document.getElementById('expense-modal-title').textContent = '✏️ تعديل مصروف';
+  document.getElementById('expense-desc').value   = e.desc   || '';
+  document.getElementById('expense-to').value     = e.to     || '';
+  document.getElementById('expense-amount').value = e.amount || '';
+  document.getElementById('expense-date').value   = e.date   || today();
+  document.getElementById('expense-note').value   = e.note   || '';
+  document.querySelectorAll('input[name="exp-pay-method"]').forEach(r => {
+    r.checked = r.value === (e.payMethod || 'كاش');
+  });
+  loadExpCatsDropdown(e.category || '');
+  openModal('modal-expense');
+}
+
+function saveExpense() {
+  const desc   = document.getElementById('expense-desc').value.trim();
+  const amount = parseFloat(document.getElementById('expense-amount').value);
+  const cat    = document.getElementById('expense-cat').value;
+  if (!cat)    { toast('يرجى اختيار التصنيف', 'error'); return; }
+  if (!desc || !amount) { toast('يرجى إدخال الوصف والمبلغ', 'error'); return; }
+
+  const editId    = document.getElementById('expense-edit-id').value;
+  const payMethod = document.querySelector('input[name="exp-pay-method"]:checked').value;
+  const entry = {
+    id:        editId || uid(),
+    category:  cat,
+    desc,
+    to:        document.getElementById('expense-to').value.trim(),
+    amount,
+    payMethod,
+    date:      document.getElementById('expense-date').value || today(),
+    note:      document.getElementById('expense-note').value.trim(),
+  };
+
+  const expenses = DB.get(K_EXPENSES);
+  if (editId) {
+    const idx = expenses.findIndex(e => e.id === editId);
+    if (idx >= 0) expenses[idx] = entry;
+  } else {
+    expenses.push(entry);
+    const cashType = payMethod === 'بنك' ? 'bank_out' : 'out';
+    addCashTransaction(cashType, `مصروف: ${cat} — ${desc}`, amount, entry.date, entry.to);
+  }
+
+  DB.set(K_EXPENSES, expenses);
+  closeModal('modal-expense');
+  renderExpenses();
+  toast('✅ تم حفظ المصروف');
+}
+
+function deleteExpense(id) {
+  document.getElementById('confirm-message').textContent = 'هل أنت متأكد من حذف هذا المصروف؟';
+  document.getElementById('confirm-ok').onclick = () => {
+    DB.set(K_EXPENSES, DB.get(K_EXPENSES).filter(e => e.id !== id));
+    closeModal('modal-confirm');
+    renderExpenses();
+    toast('تم الحذف', 'info');
+  };
+  openModal('modal-confirm');
+}
+
+// ── إدارة تصنيفات المصاريف ──
+function openExpenseCatsMgr() {
+  renderExpCatsList();
+  document.getElementById('new-exp-cat-name').value = '';
+  openModal('modal-exp-cats');
+}
+
+function renderExpCatsList() {
+  const cats = getExpCats();
+  const el   = document.getElementById('exp-cats-list');
+  if (!el) return;
+  if (cats.length === 0) {
+    el.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:16px">لا توجد تصنيفات — أضف تصنيفاتك</div>`;
+    return;
+  }
+  el.innerHTML = cats.map(c => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-card2);border-radius:8px;margin-bottom:8px">
+      <span style="font-size:14px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${getCatColor(c.name)};margin-left:8px"></span>${c.name}</span>
+      <button class="btn btn-sm btn-danger" onclick="deleteExpenseCat('${c.id}')">🗑️</button>
+    </div>
+  `).join('');
+}
+
+function saveExpenseCat() {
+  const name = document.getElementById('new-exp-cat-name').value.trim();
+  if (!name) { toast('اكتب اسم التصنيف', 'error'); return; }
+  if (getExpCats().find(c => c.name === name)) { toast('هذا التصنيف موجود مسبقاً', 'error'); return; }
+  const cats = DB.get(K_EXP_CATS);
+  cats.push({ id: uid(), name });
+  DB.set(K_EXP_CATS, cats);
+  document.getElementById('new-exp-cat-name').value = '';
+  renderExpCatsList();
+  toast('✅ تم إضافة التصنيف');
+}
+
+function deleteExpenseCat(id) {
+  DB.set(K_EXP_CATS, DB.get(K_EXP_CATS).filter(c => c.id !== id));
+  renderExpCatsList();
+  toast('تم الحذف', 'info');
+}
+
+function renderDebts() {
+  const debts = DB.get(K_DEBTS).sort((a,b) => b.date.localeCompare(a.date));
+  const active = debts.filter(d => d.status !== 'مسدد');
+  const totalDebt = active.reduce((s,d) => s + (+d.amount - +d.paid), 0);
+
+  document.getElementById('debt-total').textContent = formatNum(totalDebt);
+  document.getElementById('debt-count').textContent = active.length;
+
+  const tbody = document.getElementById('debts-tbody');
+  if (debts.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="icon">✅</div><p>لا توجد ديون</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = debts.map((d, i) => {
+    const remaining = +d.amount - +d.paid;
+    const status = remaining <= 0 ? 'مسدد' : d.status;
+    return `
+      <tr>
+        <td>${i+1}</td>
+        <td><strong>${d.name}</strong>${d.note?`<br><span style="font-size:11px;color:var(--text-muted)">${d.note}</span>`:''}</td>
+        <td>${formatNum(d.amount)} ل</td>
+        <td style="color:var(--success)">${formatNum(d.paid)} ل</td>
+        <td style="color:${remaining>0?'var(--danger)':'var(--success)'}"><strong>${formatNum(remaining)} ل</strong></td>
+        <td>${formatDate(d.date)}</td>
+        <td>${status === 'مسدد' ? '<span class="badge badge-success">✅ مسدد</span>' : '<span class="badge badge-danger">⏳ مستحق</span>'}</td>
+        <td>
+          <div style="display:flex;gap:4px">
+            ${remaining > 0 ? `<button class="btn btn-sm btn-success" onclick="openPayDebt('${d.id}')">💳 تسديد</button>` : ''}
+            <button class="btn btn-sm btn-info" onclick="showDebtHistory('${d.id}')">📋 الدفعات</button>
+            <button class="btn btn-sm btn-secondary" onclick="editDebt('${d.id}')">✏️</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteDebt('${d.id}')">🗑️</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function openAddDebt() {
+  document.getElementById('debt-edit-id').value = '';
+  document.getElementById('debt-modal-title').textContent = 'إضافة دين جديد';
+  document.getElementById('debt-name').value = '';
+  document.getElementById('debt-amount').value = '';
+  document.getElementById('debt-date').value = today();
+  document.getElementById('debt-note').value = '';
+  getCustomersDatalist();
+  openModal('modal-debt');
+}
+
+function editDebt(id) {
+  const d = DB.get(K_DEBTS).find(x => x.id === id);
+  if (!d) return;
+  document.getElementById('debt-edit-id').value = id;
+  document.getElementById('debt-modal-title').textContent = 'تعديل دين';
+  document.getElementById('debt-name').value = d.name;
+  document.getElementById('debt-amount').value = d.amount;
+  document.getElementById('debt-date').value = d.date;
+  document.getElementById('debt-note').value = d.note || '';
+  openModal('modal-debt');
+}
+
+function saveDebt() {
+  const name = document.getElementById('debt-name').value.trim();
+  const amount = parseFloat(document.getElementById('debt-amount').value);
+  if (!name || !amount) { toast('يرجى إدخال الاسم والمبلغ', 'error'); return; }
+
+  const editId = document.getElementById('debt-edit-id').value;
+  const debts = DB.get(K_DEBTS);
+
+  if (editId) {
+    const idx = debts.findIndex(d => d.id === editId);
+    if (idx !== -1) {
+      debts[idx] = { ...debts[idx], name, amount, date: document.getElementById('debt-date').value, note: document.getElementById('debt-note').value };
+      DB.set(K_DEBTS, debts);
+      toast('✅ تم تحديث الدين');
+    }
+  } else {
+    debts.push({ id: uid(), name, amount, paid: 0, date: document.getElementById('debt-date').value, note: document.getElementById('debt-note').value, status: 'مستحق' });
+    DB.set(K_DEBTS, debts);
+    toast('✅ تم إضافة الدين');
+  }
+  closeModal('modal-debt');
+  renderDebts();
+}
+
+function openPayDebt(id) {
+  document.getElementById('pay-debt-id').value = id;
+  document.getElementById('pay-debt-amount').value = '';
+  openModal('modal-pay-debt');
+}
+
+function confirmPayDebt() {
+  const id     = document.getElementById('pay-debt-id').value;
+  const amount = parseFloat(document.getElementById('pay-debt-amount').value);
+  if (!amount) { toast('أدخل المبلغ', 'error'); return; }
+
+  const debts = DB.get(K_DEBTS);
+  const idx   = debts.findIndex(d => d.id === id);
+  if (idx === -1) return;
+
+  // سجل الدفعة
+  if (!debts[idx].payments) debts[idx].payments = [];
+  debts[idx].payments.push({ amount, date: today() });
+  debts[idx].paid = (+debts[idx].paid || 0) + amount;
+
+  const remaining = +debts[idx].amount - debts[idx].paid;
+  if (remaining <= 0) debts[idx].status = 'مسدد';
+
+  DB.set(K_DEBTS, debts);
+
+  // حدّث المدفوع في الصيانة المرتبطة
+  if (debts[idx].repairId) {
+    const repairs = DB.get(K_REPAIRS);
+    const rIdx = repairs.findIndex(r => r.id === debts[idx].repairId);
+    if (rIdx !== -1) {
+      repairs[rIdx].paid = (+repairs[rIdx].paid || 0) + amount;
+      if (+repairs[rIdx].paid >= +repairs[rIdx].total) {
+        repairs[rIdx].payStatus = 'كاش';
+      }
+      DB.set(K_REPAIRS, repairs);
+    }
+  }
+
+  addCashTransaction('in', `تسديد دين: ${debts[idx].name}`, amount, today());
+  closeModal('modal-pay-debt');
+  renderDebts();
+  toast('✅ تم تسجيل التسديد');
+}
+
+function deleteDebt(id) {
+  document.getElementById('confirm-message').textContent = 'هل أنت متأكد من حذف هذا الدين؟';
+  document.getElementById('confirm-ok').onclick = () => {
+    DB.set(K_DEBTS, DB.get(K_DEBTS).filter(d => d.id !== id));
+    closeModal('modal-confirm');
+    renderDebts();
+    toast('تم الحذف', 'info');
+  };
+  openModal('modal-confirm');
+}
+
+// ==================== CUSTOMERS ====================
+function renderCustomers() {
+  const search = document.getElementById('cust-search').value.toLowerCase();
+  const typeF = document.getElementById('cust-type-filter').value;
+  const repairs = DB.get(K_REPAIRS);
+
+  let list = DB.get(K_CUSTOMERS).filter(c => {
+    if (search && !c.name.toLowerCase().includes(search) && !(c.phone||'').includes(search)) return false;
+    if (typeF && c.type !== typeF) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('customers-tbody');
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="icon">👥</div><p>لا توجد عملاء</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map((c, i) => {
+    const ops = repairs.filter(r => r.customer === c.name);
+    const totalPaid = ops.reduce((s,r) => s + +r.paid, 0);
+    return `
+      <tr>
+        <td>${i+1}</td>
+        <td>
+          <strong>${c.name}</strong>
+          ${ops.length > 0 ? `<br><span style="font-size:11px;color:var(--text-muted)">${formatNum(totalPaid)} ليرة إجمالي</span>` : ''}
+        </td>
+        <td>${c.phone||'-'}</td>
+        <td><span class="badge ${c.type==='محل'?'badge-info':'badge-teal'}">${c.type||'زبون'}</span></td>
+        <td>${ops.length > 0 ? `<span class="badge badge-teal">${ops.length} عملية</span>` : '-'}</td>
+        <td>
+          <div style="display:flex;gap:4px">
+            ${ops.length > 0 ? `<button class="btn btn-sm btn-primary" onclick="showCustomerHistory('${c.name.replace(/'/g,"\\'")}')">📋 السجل</button>` : ''}
+            <button class="btn btn-sm btn-secondary" onclick="editCustomer('${c.id}')">✏️</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteCustomer('${c.id}')">🗑️</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  getCustomersDatalist();
+}
+
+function showCustomerHistory(name) {
+  const repairs = DB.get(K_REPAIRS).filter(r => r.customer === name).sort((a,b) => b.date.localeCompare(a.date));
+  const debts   = DB.get(K_DEBTS).filter(d => d.name === name).sort((a,b) => b.date.localeCompare(a.date));
+
+  const totalPaid   = repairs.reduce((s,r) => s + +r.paid, 0);
+  const totalAmount = repairs.reduce((s,r) => s + +r.total, 0);
+  const remaining   = totalAmount - totalPaid;
+  const totalDebt   = debts.reduce((s,d) => s + (+d.amount - +d.paid), 0);
+
+  document.getElementById('cust-history-title').innerHTML = `📋 سجل العميل: <span style="color:var(--accent)">${name}</span>`;
+
+  if (repairs.length === 0 && debts.length === 0) {
+    document.getElementById('cust-history-content').innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>لا توجد عمليات لهذا العميل</p></div>`;
+    openModal('modal-customer-history');
+    return;
+  }
+
+  document.getElementById('cust-history-content').innerHTML = `
+    <!-- Summary -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;padding:0 20px">
+      <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">عدد الصيانات</div>
+        <div style="font-size:20px;font-weight:900;color:var(--info)">${repairs.length}</div>
+      </div>
+      <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">إجمالي المقبوض</div>
+        <div style="font-size:20px;font-weight:900;color:var(--success)">${formatNum(totalPaid)}</div>
+        <div style="font-size:10px;color:var(--text-muted)">ليرة</div>
+      </div>
+      <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">ديون متبقية</div>
+        <div style="font-size:20px;font-weight:900;color:${totalDebt>0?'var(--danger)':'var(--success)'}">${formatNum(totalDebt)}</div>
+        <div style="font-size:10px;color:var(--text-muted)">ليرة</div>
+      </div>
+    </div>
+
+    <!-- تبويبات -->
+    <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin:0 20px 16px">
+      <button id="tab-repairs-btn" onclick="switchCustTab('repairs')"
+        style="padding:10px 20px;background:none;border:none;border-bottom:3px solid var(--accent);color:var(--accent);font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:-2px">
+        🔧 الصيانات (${repairs.length})
+      </button>
+      <button id="tab-debts-btn" onclick="switchCustTab('debts')"
+        style="padding:10px 20px;background:none;border:none;border-bottom:3px solid transparent;color:var(--text-muted);font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:-2px">
+        📋 الديون (${debts.length})
+      </button>
+    </div>
+
+    <!-- محتوى الصيانات -->
+    <div id="tab-repairs-content" style="padding:0 20px 20px;display:flex;flex-direction:column;gap:12px">
+      ${repairs.length === 0
+        ? `<div style="text-align:center;color:var(--text-muted);padding:20px">لا توجد صيانات</div>`
+        : repairs.map((r, i) => `
+        <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(0,0,0,0.2);border-bottom:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:12px;color:var(--text-muted)">#${repairs.length - i}</span>
+              <strong style="font-size:14px">${r.deviceType||'-'} ${r.model||''}</strong>
+              <span class="badge ${r.workType==='سوفتوير'?'badge-success':r.workType==='هاردوير وسوفتوير'?'badge-warning':'badge-info'}" style="font-size:11px">${r.workType||'-'}</span>
+            </div>
+            <span style="font-size:12px;color:var(--text-muted)">${formatDate(r.date)}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;font-size:13px">
+            <div style="padding:10px 14px;border-left:1px solid var(--border);border-bottom:1px solid var(--border)">
+              <div style="color:var(--text-muted);font-size:11px;margin-bottom:3px">العطل</div>
+              <div>${r.problem||'-'}</div>
+            </div>
+            <div style="padding:10px 14px;border-bottom:1px solid var(--border)">
+              <div style="color:var(--text-muted);font-size:11px;margin-bottom:3px">نوع العمل</div>
+              <div>${r.workType||'-'}</div>
+            </div>
+            <div style="padding:10px 14px;border-left:1px solid var(--border)">
+              <div style="color:var(--text-muted);font-size:11px;margin-bottom:3px">المبلغ الكلي</div>
+              <div style="font-weight:700;color:var(--accent)">${formatNum(r.total)} ليرة</div>
+            </div>
+            <div style="padding:10px 14px">
+              <div style="color:var(--text-muted);font-size:11px;margin-bottom:3px">المدفوع</div>
+              <div style="font-weight:700;color:${+r.paid>= +r.total?'var(--success)':'var(--warning)'}">${formatNum(r.paid)} ل — ${getPayBadge(r.payStatus)}</div>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- محتوى الديون -->
+    <div id="tab-debts-content" style="padding:0 20px 20px;display:none;flex-direction:column;gap:12px">
+      ${debts.length === 0
+        ? `<div style="text-align:center;color:var(--text-muted);padding:20px">لا توجد ديون مسجلة</div>`
+        : debts.map(d => {
+            const rem = +d.amount - +d.paid;
+            const payments = d.payments || [];
+            return `
+            <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(0,0,0,0.2);border-bottom:1px solid var(--border)">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <strong>${d.name}</strong>
+                  ${rem <= 0 ? '<span class="badge badge-success">✅ مسدد</span>' : '<span class="badge badge-danger">⏳ مستحق</span>'}
+                </div>
+                <span style="font-size:12px;color:var(--text-muted)">${formatDate(d.date)}</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;font-size:13px;border-bottom:1px solid var(--border)">
+                <div style="padding:10px 14px;border-left:1px solid var(--border);text-align:center">
+                  <div style="color:var(--text-muted);font-size:11px;margin-bottom:3px">الدين</div>
+                  <div style="font-weight:700;color:var(--accent2)">${formatNum(d.amount)} ل</div>
+                </div>
+                <div style="padding:10px 14px;border-left:1px solid var(--border);text-align:center">
+                  <div style="color:var(--text-muted);font-size:11px;margin-bottom:3px">المدفوع</div>
+                  <div style="font-weight:700;color:var(--success)">${formatNum(d.paid)} ل</div>
+                </div>
+                <div style="padding:10px 14px;text-align:center">
+                  <div style="color:var(--text-muted);font-size:11px;margin-bottom:3px">المتبقي</div>
+                  <div style="font-weight:700;color:${rem>0?'var(--danger)':'var(--success)'}">${formatNum(rem)} ل</div>
+                </div>
+              </div>
+              ${payments.length > 0 ? `
+              <div style="padding:10px 14px">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">الدفعات (${payments.length})</div>
+                <div style="display:flex;flex-direction:column;gap:5px">
+                  ${payments.map((p,i) => `
+                    <div style="display:flex;justify-content:space-between;padding:6px 10px;background:rgba(0,0,0,0.15);border-radius:6px;font-size:12px">
+                      <span style="color:var(--text-muted)">دفعة ${i+1} — ${formatDate(p.date)}</span>
+                      <strong style="color:var(--success)">+ ${formatNum(p.amount)} ل</strong>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>` : ''}
+            </div>`;
+          }).join('')}
+    </div>
+  `;
+
+  openModal('modal-customer-history');
+}
+
+function showDebtHistory(id) {
+  const d = DB.get(K_DEBTS).find(x => x.id === id);
+  if (!d) return;
+
+  const remaining = +d.amount - +d.paid;
+  const payments  = d.payments || [];
+
+  document.getElementById('debt-history-title').innerHTML =
+    `📋 سجل الدفعات: <span style="color:var(--accent)">${d.name}</span>`;
+
+  document.getElementById('debt-history-content').innerHTML = `
+    <!-- ملخص -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
+      <div style="background:var(--bg-card2);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">إجمالي الدين</div>
+        <div style="font-size:20px;font-weight:900;color:var(--accent2)">${formatNum(d.amount)}</div>
+        <div style="font-size:10px;color:var(--text-muted)">ليرة</div>
+      </div>
+      <div style="background:var(--bg-card2);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">إجمالي المدفوع</div>
+        <div style="font-size:20px;font-weight:900;color:var(--success)">${formatNum(d.paid)}</div>
+        <div style="font-size:10px;color:var(--text-muted)">ليرة</div>
+      </div>
+      <div style="background:var(--bg-card2);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">المتبقي</div>
+        <div style="font-size:20px;font-weight:900;color:${remaining>0?'var(--danger)':'var(--success)'}">${formatNum(remaining)}</div>
+        <div style="font-size:10px;color:var(--text-muted)">ليرة</div>
+      </div>
+    </div>
+
+    <!-- شريط التقدم -->
+    <div style="margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:6px">
+        <span>نسبة السداد</span>
+        <span>${d.amount > 0 ? Math.round(+d.paid / +d.amount * 100) : 0}%</span>
+      </div>
+      <div style="height:8px;background:var(--bg-card2);border-radius:4px">
+        <div style="height:8px;width:${d.amount > 0 ? Math.min(100, Math.round(+d.paid/+d.amount*100)) : 0}%;background:${remaining<=0?'var(--success)':'var(--accent)'};border-radius:4px;transition:width .3s"></div>
+      </div>
+    </div>
+
+    <!-- سجل الدفعات -->
+    <div style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:10px">سجل الدفعات (${payments.length})</div>
+    ${payments.length === 0
+      ? `<div style="text-align:center;color:var(--text-muted);padding:20px">لا توجد دفعات مسجلة بعد</div>`
+      : `<div style="display:flex;flex-direction:column;gap:8px">
+          ${payments.map((p, i) => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg-card2);border-radius:8px;border-right:3px solid var(--success)">
+              <div>
+                <div style="font-size:12px;color:var(--text-muted)">دفعة ${i+1} — ${formatDate(p.date)}</div>
+              </div>
+              <strong style="color:var(--success);font-size:15px">+ ${formatNum(p.amount)} ل</strong>
+            </div>
+          `).join('')}
+        </div>`
+    }
+  `;
+
+  openModal('modal-debt-history');
+}
+
+function switchCustTab(tab) {
+  const repairsContent = document.getElementById('tab-repairs-content');
+  const debtsContent   = document.getElementById('tab-debts-content');
+  const repairsBtn     = document.getElementById('tab-repairs-btn');
+  const debtsBtn       = document.getElementById('tab-debts-btn');
+  if (tab === 'repairs') {
+    repairsContent.style.display = 'flex';
+    debtsContent.style.display   = 'none';
+    repairsBtn.style.borderBottomColor = 'var(--accent)';
+    repairsBtn.style.color             = 'var(--accent)';
+    debtsBtn.style.borderBottomColor   = 'transparent';
+    debtsBtn.style.color               = 'var(--text-muted)';
+  } else {
+    repairsContent.style.display = 'none';
+    debtsContent.style.display   = 'flex';
+    debtsBtn.style.borderBottomColor   = 'var(--accent)';
+    debtsBtn.style.color               = 'var(--accent)';
+    repairsBtn.style.borderBottomColor = 'transparent';
+    repairsBtn.style.color             = 'var(--text-muted)';
+  }
+}
+
+function openAddCustomer() {
+  document.getElementById('cust-edit-id').value = '';
+  document.getElementById('cust-modal-title').textContent = 'إضافة عميل جديد';
+  document.getElementById('cust-name').value = '';
+  document.getElementById('cust-phone').value = '';
+  document.getElementById('cust-type').value = 'زبون';
+  openModal('modal-customer');
+}
+
+function editCustomer(id) {
+  const c = DB.get(K_CUSTOMERS).find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('cust-edit-id').value = id;
+  document.getElementById('cust-modal-title').textContent = 'تعديل بيانات عميل';
+  document.getElementById('cust-name').value = c.name;
+  document.getElementById('cust-phone').value = c.phone || '';
+  document.getElementById('cust-type').value = c.type || 'زبون';
+  openModal('modal-customer');
+}
+
+function saveCustomer() {
+  const name = document.getElementById('cust-name').value.trim();
+  if (!name) { toast('أدخل اسم العميل', 'error'); return; }
+  const editId = document.getElementById('cust-edit-id').value;
+  const customers = DB.get(K_CUSTOMERS);
+
+  if (editId) {
+    const idx = customers.findIndex(c => c.id === editId);
+    if (idx !== -1) {
+      customers[idx] = { ...customers[idx], name, phone: document.getElementById('cust-phone').value, type: document.getElementById('cust-type').value };
+      DB.set(K_CUSTOMERS, customers);
+      toast('✅ تم تحديث بيانات العميل');
+    }
+  } else {
+    if (customers.find(c => c.name === name)) { toast('هذا الاسم موجود مسبقاً', 'error'); return; }
+    customers.push({ id: uid(), name, phone: document.getElementById('cust-phone').value, type: document.getElementById('cust-type').value });
+    DB.set(K_CUSTOMERS, customers);
+    toast('✅ تم إضافة العميل');
+  }
+  closeModal('modal-customer');
+  renderCustomers();
+}
+
+function deleteCustomer(id) {
+  document.getElementById('confirm-message').textContent = 'هل أنت متأكد من حذف هذا العميل؟';
+  document.getElementById('confirm-ok').onclick = () => {
+    DB.set(K_CUSTOMERS, DB.get(K_CUSTOMERS).filter(c => c.id !== id));
+    closeModal('modal-confirm');
+    renderCustomers();
+    toast('تم الحذف', 'info');
+  };
+  openModal('modal-confirm');
+}
+
+// ==================== REPORTS ====================
+function showDrill(type) {
+  const period   = document.getElementById('report-period')?.value || 'month';
+  const todayStr = today();
+  const monthStr = todayStr.slice(0,7);
+
+  function inPeriod(date) {
+    if (!date) return false;
+    if (period === 'all') return true;
+    if (period === 'today') return date === todayStr;
+    if (period === 'month') return date.startsWith(monthStr);
+    if (period === 'year')  return date.startsWith(todayStr.slice(0,4));
+    if (period === 'week') {
+      const d = new Date(date);
+      const diff = (new Date() - d) / (1000*60*60*24);
+      return diff <= 7;
+    }
+    return false;
+  }
+
+  const repairs  = DB.get(K_REPAIRS).filter(r => inPeriod(r.date));
+  const cash     = DB.get(K_CASH).filter(c => inPeriod(c.date));
+  const expenses = DB.get(K_EXPENSES).filter(e => inPeriod(e.date));
+
+  let title = '', rows = '';
+
+  if (type === 'today-profit' || type === 'month-profit') {
+    title = type === 'today-profit' ? '📈 تفاصيل أرباح اليوم' : '📅 تفاصيل أرباح الشهر';
+    const data = type === 'today-profit'
+      ? DB.get(K_REPAIRS).filter(r => r.date === todayStr)
+      : DB.get(K_REPAIRS).filter(r => r.date?.startsWith(monthStr));
+    rows = data.length === 0
+      ? '<div style="text-align:center;color:var(--text-muted);padding:20px">لا توجد بيانات</div>'
+      : data.sort((a,b)=>b.date.localeCompare(a.date)).map(r => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-card2);border-radius:8px;margin-bottom:6px;border-right:3px solid var(--accent)">
+          <div>
+            <div style="font-weight:600">${r.customer} — ${r.model||'-'}</div>
+            <div style="font-size:12px;color:var(--text-muted)">${formatDate(r.date)} | ${r.problem||'-'}</div>
+          </div>
+          <div style="text-align:left">
+            <div style="color:var(--success);font-weight:700">مقبوض: ${formatNum(r.paid)} ل</div>
+            ${+r.partsCost > 0 ? `<div style="font-size:12px;color:var(--danger)">قطع: ${formatNum(r.partsCost)} ل</div>` : ''}
+            <div style="font-size:13px;font-weight:700;color:var(--accent)">ربح: ${formatNum(+r.paid - +r.partsCost)} ل</div>
+          </div>
+        </div>`).join('');
+
+  } else if (type === 'cash-in') {
+    title = '💵 تفاصيل المقبوضات كاش';
+    const data = cash.filter(c => c.type === 'in');
+    rows = _drillCashRows(data, 'success');
+
+  } else if (type === 'bank-in') {
+    title = '🏦 تفاصيل مقبوضات البنك';
+    const data = cash.filter(c => c.type === 'bank_in');
+    rows = _drillCashRows(data, 'info');
+
+  } else if (type === 'cash-out') {
+    title = '💸 تفاصيل المدفوعات';
+    const data = cash.filter(c => c.type === 'out' || c.type === 'bank_out');
+    rows = _drillCashRows(data, 'danger');
+
+  } else if (type === 'expenses') {
+    title = '💸 تفاصيل المصاريف';
+    rows = expenses.length === 0
+      ? '<div style="text-align:center;color:var(--text-muted);padding:20px">لا توجد مصاريف</div>'
+      : expenses.sort((a,b)=>b.date.localeCompare(a.date)).map(e => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-card2);border-radius:8px;margin-bottom:6px;border-right:3px solid var(--danger)">
+          <div>
+            <div style="font-weight:600">${e.desc}</div>
+            <div style="font-size:12px;color:var(--text-muted)">${formatDate(e.date)} | 🏷️ ${e.category||'-'}${e.to?' | 👤 '+e.to:''}</div>
+          </div>
+          <strong style="color:var(--danger)">− ${formatNum(e.amount)} ل</strong>
+        </div>`).join('');
+
+  } else if (type === 'fixed') {
+    title = '🔧 تفاصيل الأجهزة المصلّحة';
+    rows = repairs.length === 0
+      ? '<div style="text-align:center;color:var(--text-muted);padding:20px">لا توجد بيانات</div>'
+      : repairs.sort((a,b)=>b.date.localeCompare(a.date)).map(r => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-card2);border-radius:8px;margin-bottom:6px">
+          <div>
+            <div style="font-weight:600">${r.customer} — ${r.model||'-'}</div>
+            <div style="font-size:12px;color:var(--text-muted)">${formatDate(r.date)} | ${r.problem||'-'}</div>
+          </div>
+          <span class="badge badge-success">${r.workType||'-'}</span>
+        </div>`).join('');
+
+  } else if (type === 'parts-cost') {
+    title = '🔩 تفاصيل تكلفة القطع';
+    const data = repairs.filter(r => +r.partsCost > 0);
+    rows = data.length === 0
+      ? '<div style="text-align:center;color:var(--text-muted);padding:20px">لا توجد قطع مسجلة</div>'
+      : data.sort((a,b)=>b.date.localeCompare(a.date)).map(r => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-card2);border-radius:8px;margin-bottom:6px;border-right:3px solid #e55">
+          <div>
+            <div style="font-weight:600">${r.customer} — ${r.model||'-'}</div>
+            <div style="font-size:12px;color:var(--text-muted)">${formatDate(r.date)}</div>
+          </div>
+          <strong style="color:var(--danger)">− ${formatNum(r.partsCost)} ل</strong>
+        </div>`).join('');
+  }
+
+  document.getElementById('drill-title').textContent = title;
+  document.getElementById('drill-content').innerHTML  = rows;
+  openModal('modal-report-drill');
+}
+
+function _drillCashRows(data, color) {
+  if (data.length === 0) return '<div style="text-align:center;color:var(--text-muted);padding:20px">لا توجد بيانات</div>';
+  return data.sort((a,b)=>b.date.localeCompare(a.date)).map(c => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-card2);border-radius:8px;margin-bottom:6px;border-right:3px solid var(--${color})">
+      <div>
+        <div style="font-weight:600">${c.desc}</div>
+        <div style="font-size:12px;color:var(--text-muted)">${formatDate(c.date)}${c.person?' | 👤 '+c.person:''}</div>
+      </div>
+      <strong style="color:var(--${color})">${formatNum(c.amount)} ل</strong>
+    </div>`).join('');
+}
+
+function renderReports() {
+  const period = document.getElementById('report-period').value;
+  const repairs = DB.get(K_REPAIRS);
+  const cash = DB.get(K_CASH);
+  const todayStr = today();
+  const monthStr = todayStr.slice(0, 7);
+
+  function inPeriod(date) {
+    if (!date) return false;
+    if (period === 'all') return true;
+    if (period === 'today') return date === todayStr;
+    if (period === 'week') {
+      const d = new Date(date);
+      const now = new Date();
+      const diff = (now - d) / (1000 * 60 * 60 * 24);
+      return diff <= 7;
+    }
+    if (period === 'month') return date.startsWith(monthStr);
+    if (period === 'year') return date.startsWith(todayStr.slice(0,4));
+    return false;
+  }
+
+  const filteredCash    = cash.filter(c => inPeriod(c.date));
+  const filteredRepairs = repairs.filter(r => inPeriod(r.date));
+  const filteredExpenses = DB.get(K_EXPENSES).filter(e => inPeriod(e.date));
+
+  const todayProfit = repairs.filter(r => r.date === todayStr)
+    .reduce((s,r) => s + (+r.paid > 0 ? +r.paid - +r.partsCost : 0), 0);
+  const monthProfit = repairs.filter(r => r.date && r.date.startsWith(monthStr))
+    .reduce((s,r) => s + (+r.paid > 0 ? +r.paid - +r.partsCost : 0), 0);
+
+  const totalIn    = filteredCash.filter(c => c.type === 'in').reduce((s,c) => s + +c.amount, 0);
+  const totalOut   = filteredCash.filter(c => c.type === 'out').reduce((s,c) => s + +c.amount, 0);
+  const bankIn     = filteredCash.filter(c => c.type === 'bank_in').reduce((s,c) => s + +c.amount, 0);
+  const totalExp   = filteredExpenses.reduce((s,e) => s + +e.amount, 0);
+
+  document.getElementById('rep-today').textContent    = formatNum(todayProfit);
+  document.getElementById('rep-month').textContent    = formatNum(monthProfit);
+  document.getElementById('rep-total-in').textContent = formatNum(totalIn);
+  document.getElementById('rep-total-out').textContent= formatNum(totalOut);
+  const totalPartsCost = filteredRepairs.reduce((s,r) => s + +r.partsCost, 0);
+
+  document.getElementById('rep-bank-in').textContent    = formatNum(bankIn);
+  document.getElementById('rep-expenses').textContent   = formatNum(totalExp);
+  document.getElementById('rep-fixed').textContent      = filteredRepairs.length;
+  document.getElementById('rep-parts-total').textContent = formatNum(totalPartsCost);
+
+  // Hardware vs Software — revenue minus parts cost = actual profit per section
+  const hwOnly   = filteredRepairs.filter(r => r.workType === 'هاردوير');
+  const swOnly   = filteredRepairs.filter(r => r.workType === 'سوفتوير');
+  const hwswBoth = filteredRepairs.filter(r => r.workType === 'هاردوير وسوفتوير');
+
+  const hwIncome   = hwOnly.reduce((s,r)   => s + (+r.paid > 0 ? +r.paid - +r.partsCost : 0), 0);
+  const swIncome   = swOnly.reduce((s,r)   => s + (+r.paid > 0 ? +r.paid - +r.partsCost : 0), 0);
+  const bothIncome = hwswBoth.reduce((s,r) => s + (+r.paid > 0 ? +r.paid - +r.partsCost : 0), 0);
+
+  const hwLabel = hwswBoth.length > 0 ? `${hwOnly.length} + ${hwswBoth.length} مشترك` : `${hwOnly.length}`;
+  const swLabel = hwswBoth.length > 0 ? `${swOnly.length} + ${hwswBoth.length} مشترك` : `${swOnly.length}`;
+
+  document.getElementById('hw-count').textContent = hwLabel;
+  document.getElementById('hw-income').textContent = formatNum(hwIncome + bothIncome/2) + ' ليرة';
+  document.getElementById('sw-count').textContent = swLabel;
+  document.getElementById('sw-income').textContent = formatNum(swIncome + bothIncome/2) + ' ليرة';
+
+  // Build device lists (hidden by default, toggled on demand)
+  const buildList = (list, color) => {
+    if (list.length === 0) return `<div class="empty-state" style="padding:20px"><p>لا توجد أجهزة</p></div>`;
+    return `
+      <div style="border-top:1px solid var(--border);padding-top:12px">
+        ${list.sort((a,b) => b.date.localeCompare(a.date)).map((r,i) => `
+          <div style="display:grid;grid-template-columns:1fr auto;gap:8px;padding:9px 0;border-bottom:1px solid rgba(30,45,74,0.4);font-size:13px;align-items:start">
+            <div>
+              <div style="font-weight:700">${r.customer} — <span style="color:${color}">${r.deviceType||''} ${r.model||''}</span></div>
+              <div style="color:var(--text-muted);font-size:11.5px;margin-top:2px">${r.problem||''}</div>
+              ${r.parts ? `<div style="color:var(--text-muted);font-size:11px">🔩 ${r.parts}</div>` : ''}
+            </div>
+            <div style="text-align:left;white-space:nowrap">
+              <div style="font-weight:700;color:${color}">${formatNum(+r.total - +r.partsCost)} ل</div>
+              <div style="font-size:11px;color:var(--text-muted)">${formatDate(r.date)}</div>
+              <div style="margin-top:2px">${getPayBadge(r.payStatus)}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  };
+
+  document.getElementById('hw-list').innerHTML = buildList([...hwOnly, ...hwswBoth], 'var(--accent2)');
+  document.getElementById('sw-list').innerHTML = buildList([...swOnly, ...hwswBoth], 'var(--success)');
+
+  // Reset list visibility on period change
+  document.getElementById('hw-list').style.display = 'none';
+  document.getElementById('sw-list').style.display = 'none';
+
+  // Top problems
+  const problems = {};
+  filteredRepairs.forEach(r => {
+    const p = (r.problem||'').substring(0,30);
+    problems[p] = (problems[p] || 0) + 1;
+  });
+  const topP = Object.entries(problems).sort((a,b) => b[1]-a[1]).slice(0,5);
+  document.getElementById('top-problems').innerHTML = topP.length === 0 ? '<div class="empty-state"><p>لا توجد بيانات</p></div>' :
+    topP.map(([p, n]) => `
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:13px">${p}</span>
+        <span class="badge badge-warning">${n}</span>
+      </div>
+    `).join('');
+
+  // Top devices
+  const devs = {};
+  filteredRepairs.forEach(r => { const t = r.deviceType || 'أخرى'; devs[t] = (devs[t] || 0) + 1; });
+  const topD = Object.entries(devs).sort((a,b) => b[1]-a[1]).slice(0,5);
+  document.getElementById('top-devices').innerHTML = topD.length === 0 ? '<div class="empty-state"><p>لا توجد بيانات</p></div>' :
+    topD.map(([d, n]) => `
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:13px">${d}</span>
+        <span class="badge badge-info">${n}</span>
+      </div>
+    `).join('');
+
+  // Init inventory month to current month
+  const invMonth = document.getElementById('inv-month');
+  if (!invMonth.value) invMonth.value = monthStr;
+  renderInventory();
+}
+
+// ==================== WORK TYPE LIST TOGGLE ====================
+function toggleWorkList(type) {
+  const el = document.getElementById(type + '-list');
+  const btn = el.closest('.card').querySelector('button');
+  if (el.style.display === 'none') {
+    el.style.display = 'block';
+    btn.textContent = '🔼 إخفاء';
+  } else {
+    el.style.display = 'none';
+    btn.textContent = '📋 السجل';
+  }
+}
+
+// ==================== MONTHLY INVENTORY ====================
+function renderInventory() {
+  const selectedMonth = document.getElementById('inv-month').value;
+  if (!selectedMonth) return;
+
+  const cash = DB.get(K_CASH);
+  // Filter out-type transactions for this month that have a person
+  const monthExpenses = cash.filter(c =>
+    c.type === 'out' &&
+    c.date && c.date.startsWith(selectedMonth) &&
+    c.person && c.person.trim() !== ''
+  );
+
+  const el = document.getElementById('inventory-content');
+
+  if (monthExpenses.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>لا توجد مدفوعات بأسماء أشخاص لهذا الشهر</p><p style="font-size:12px;margin-top:8px">تأكد من إدخال اسم الشخص عند تسجيل المدفوعات</p></div>`;
+    return;
+  }
+
+  // Group by person
+  const byPerson = {};
+  monthExpenses.forEach(c => {
+    const name = c.person.trim();
+    if (!byPerson[name]) byPerson[name] = { total: 0, transactions: [] };
+    byPerson[name].total += +c.amount;
+    byPerson[name].transactions.push(c);
+  });
+
+  const grandTotal = Object.values(byPerson).reduce((s, p) => s + p.total, 0);
+
+  // Format month display
+  const [y, m] = selectedMonth.split('-');
+  const monthNames = ['','يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  const monthLabel = `${monthNames[+m]} ${y}`;
+
+  el.innerHTML = `
+    <div style="margin-bottom:16px;padding:12px 16px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:14px;font-weight:700;color:var(--text-muted)">📅 جرد شهر: <strong style="color:var(--text-main)">${monthLabel}</strong></span>
+      <span style="font-size:15px;font-weight:900;color:var(--danger)">الإجمالي: ${formatNum(grandTotal)} ليرة</span>
+    </div>
+
+    ${Object.entries(byPerson).sort((a,b) => b[1].total - a[1].total).map(([name, data]) => `
+      <div style="margin-bottom:16px;background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.2)">
+          <span style="font-size:14px;font-weight:700">👤 ${name}</span>
+          <span style="font-size:15px;font-weight:900;color:var(--danger)">${formatNum(data.total)} ليرة</span>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+          <thead>
+            <tr style="background:rgba(0,0,0,0.15)">
+              <th style="padding:8px 14px;text-align:right;color:var(--text-muted);font-weight:600">التاريخ</th>
+              <th style="padding:8px 14px;text-align:right;color:var(--text-muted);font-weight:600">الوصف</th>
+              <th style="padding:8px 14px;text-align:right;color:var(--text-muted);font-weight:600">المبلغ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.transactions.map(t => `
+              <tr style="border-bottom:1px solid rgba(30,45,74,0.4)">
+                <td style="padding:8px 14px;color:var(--text-dim)">${formatDate(t.date)}</td>
+                <td style="padding:8px 14px">${t.desc}</td>
+                <td style="padding:8px 14px;color:var(--danger);font-weight:700">${formatNum(t.amount)} ل</td>
+              </tr>
+            `).join('')}
+          </tbody>
+          <tfoot>
+            <tr style="background:rgba(239,68,68,0.05)">
+              <td colspan="2" style="padding:10px 14px;font-weight:700;color:var(--text-muted)">مجموع ${name}</td>
+              <td style="padding:10px 14px;font-weight:900;color:var(--danger);font-size:14px">${formatNum(data.total)} ليرة</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    `).join('')}
+
+    <div style="text-align:left;margin-top:8px">
+      <button class="btn btn-secondary btn-sm" onclick="printInventory('${selectedMonth}')">🖨️ طباعة الجرد</button>
+    </div>
+  `;
+}
+
+function printInventory(selectedMonth) {
+  const cash = DB.get(K_CASH);
+  const settings = DB.getObj(K_SETTINGS, {});
+  const monthExpenses = cash.filter(c =>
+    c.type === 'out' && c.date && c.date.startsWith(selectedMonth) && c.person && c.person.trim()
+  );
+
+  const byPerson = {};
+  monthExpenses.forEach(c => {
+    const name = c.person.trim();
+    if (!byPerson[name]) byPerson[name] = { total: 0, transactions: [] };
+    byPerson[name].total += +c.amount;
+    byPerson[name].transactions.push(c);
+  });
+
+  const grandTotal = Object.values(byPerson).reduce((s, p) => s + p.total, 0);
+  const [y, m] = selectedMonth.split('-');
+  const monthNames = ['','يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  const monthLabel = `${monthNames[+m]} ${y}`;
+
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html dir="rtl"><head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+      body { font-family:'Cairo',sans-serif; padding:30px; direction:rtl; max-width:700px; margin:auto; color:#222; }
+      h1 { font-size:22px; margin:0; }
+      .header { text-align:center; margin-bottom:24px; padding-bottom:16px; border-bottom:2px solid #333; }
+      .person-block { margin-bottom:20px; border:1px solid #ddd; border-radius:8px; overflow:hidden; }
+      .person-header { background:#f5f5f5; padding:10px 16px; display:flex; justify-content:space-between; font-weight:700; font-size:14px; }
+      table { width:100%; border-collapse:collapse; font-size:13px; }
+      th { background:#f9f9f9; padding:8px 14px; text-align:right; border-bottom:1px solid #ddd; color:#555; }
+      td { padding:8px 14px; border-bottom:1px solid #eee; }
+      .total-row td { font-weight:700; background:#fff8f8; }
+      .grand-total { margin-top:16px; padding:12px 16px; background:#fee2e2; border-radius:8px; display:flex; justify-content:space-between; font-size:16px; font-weight:900; }
+      .footer { text-align:center; margin-top:32px; font-size:12px; color:#888; border-top:1px solid #eee; padding-top:16px; }
+      @media print { button { display:none!important; } }
+    </style></head><body>
+    <div class="header">
+      <h1>${settings.shopName || 'محل الصيانة'}</h1>
+      <p style="color:#666;font-size:13px;margin-top:4px">${settings.shopPhone||''} ${settings.shopAddress ? '| '+settings.shopAddress : ''}</p>
+      <h2 style="font-size:17px;margin-top:12px">📋 كشف جرد المدفوعات — ${monthLabel}</h2>
+    </div>
+
+    ${Object.entries(byPerson).sort((a,b)=>b[1].total-a[1].total).map(([name, data]) => `
+      <div class="person-block">
+        <div class="person-header">
+          <span>👤 ${name}</span>
+          <span style="color:#dc2626">${Number(data.total).toLocaleString('ar')} ليرة</span>
+        </div>
+        <table>
+          <thead><tr><th>التاريخ</th><th>الوصف</th><th>المبلغ</th></tr></thead>
+          <tbody>
+            ${data.transactions.map(t=>`
+              <tr><td>${new Date(t.date).toLocaleDateString('ar-SA')}</td><td>${t.desc}</td><td style="color:#dc2626;font-weight:600">${Number(t.amount).toLocaleString('ar')} ل</td></tr>
+            `).join('')}
+          </tbody>
+          <tfoot><tr class="total-row"><td colspan="2">مجموع ${name}</td><td style="color:#dc2626">${Number(data.total).toLocaleString('ar')} ليرة</td></tr></tfoot>
+        </table>
+      </div>
+    `).join('')}
+
+    <div class="grand-total">
+      <span>الإجمالي الكلي للشهر</span>
+      <span style="color:#dc2626">${Number(grandTotal).toLocaleString('ar')} ليرة</span>
+    </div>
+
+    <div class="footer">تم إنشاء الكشف بتاريخ: ${new Date().toLocaleDateString('ar-SA')}</div>
+    <div style="text-align:center;margin-top:20px">
+      <button onclick="window.print()" style="padding:10px 30px;font-size:15px;font-family:Cairo,sans-serif;cursor:pointer">🖨️ طباعة</button>
+    </div>
+    </body></html>
+  `);
+  w.document.close();
+}
+
+// ==================== SETTINGS ====================
+function loadSettings() {
+  const s = DB.getObj(K_SETTINGS, {});
+  document.getElementById('set-shop-name').value = s.shopName || '';
+  document.getElementById('set-shop-phone').value = s.shopPhone || '';
+  document.getElementById('set-shop-address').value = s.shopAddress || '';
+  document.getElementById('set-invoice-note').value = s.invoiceNote || '';
+}
+
+function saveSettings() {
+  const settings = {
+    shopName: document.getElementById('set-shop-name').value,
+    shopPhone: document.getElementById('set-shop-phone').value,
+    shopAddress: document.getElementById('set-shop-address').value,
+    invoiceNote: document.getElementById('set-invoice-note').value,
+  };
+  DB.setObj(K_SETTINGS, settings);
+  document.getElementById('shop-name-sidebar').textContent = settings.shopName || 'محل الصيانة';
+  toast('✅ تم حفظ الإعدادات');
+}
+
+// ==================== BACKUP ====================
+function exportBackup() {
+  const data = {
+    repairs: DB.get(K_REPAIRS),
+    cash: DB.get(K_CASH),
+    debts: DB.get(K_DEBTS),
+    customers: DB.get(K_CUSTOMERS),
+    settings: DB.getObj(K_SETTINGS),
+    exportDate: new Date().toISOString(),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `backup_${today()}.json`;
+  a.click();
+  toast('✅ تم تصدير النسخة الاحتياطية');
+}
+
+function importBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.repairs) DB.set(K_REPAIRS, data.repairs);
+      if (data.cash) DB.set(K_CASH, data.cash);
+      if (data.debts) DB.set(K_DEBTS, data.debts);
+      if (data.customers) DB.set(K_CUSTOMERS, data.customers);
+      if (data.settings) DB.setObj(K_SETTINGS, data.settings);
+      toast('✅ تم استيراد البيانات بنجاح');
+      renderDashboard();
+    } catch { toast('خطأ في قراءة الملف', 'error'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function clearAllData() {
+  document.getElementById('confirm-message').textContent = '⚠️ هذا الإجراء سيمسح جميع البيانات نهائياً. لا يمكن التراجع. هل أنت متأكد؟';
+  document.getElementById('confirm-ok').textContent = '🗑️ نعم، امسح الكل';
+  document.getElementById('confirm-ok').onclick = async () => {
+    for(const k of [K_REPAIRS,K_CASH,K_DEBTS,K_CUSTOMERS]){
+      for(const item of cache[k]||[]) await deleteDoc(doc(fdb,k,item.id)).catch(()=>{});
+      cache[k]=[];
+    }
+    closeModal('modal-confirm');
+    renderDashboard();
+    toast('تم مسح جميع البيانات', 'info');
+  };
+  openModal('modal-confirm');
+}
+
+// ── Init ─────────────────────────────────────────────────
+function initApp() {
+  document.getElementById('current-date').textContent = new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  initRepairForm();
+  document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+}
+
+window.addEventListener('DOMContentLoaded', ()=>{
+  initApp();
+  // إلغاء أي service worker قديم
+  if('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(r=>r.forEach(x=>x.unregister()));
+
+  onAuthStateChanged(auth, user=>{
+    if(user){ showApp(); startListeners(); }
+    else     { showLogin(); }
+  });
+});
+
+// ── Expose to HTML ───────────────────────────────────────
+Object.assign(window,{
+  showPage, openModal, closeModal,
+  saveRepair, toggleDebtField,
+  editRepair, saveEditRepair, deleteRepair, showInvoice, printInvoice,
+  openAddCash, saveCash, deleteCash, renderCash, openTransfer, updateTransferLabels, saveTransfer,
+  openDollarModal, updateDollarPreview, saveDollarOp,
+  openAddDebt, editDebt, saveDebt, openPayDebt, confirmPayDebt, deleteDebt,
+  renderCustomers, renderDevices, renderReports, showDrill,
+  showCustomerHistory, switchCustTab, showDebtHistory, toggleWorkList, renderInventory, printInventory,
+  openAddCustomer, editCustomer, saveCustomer, deleteCustomer,
+  loadSettings, saveSettings, exportBackup, importBackup, clearAllData,
+  doLogin, doLogout,
+  selectFaultChip, saveFault, deleteFault, openFaultsMgr,
+  openAddEmployee, editEmployee, saveEmployee, deleteEmployee, toggleEmployeeCard,
+  openEmpWithdraw, saveEmpWithdraw, deleteEmpWithdrawal,
+  openExpenseCatsMgr, saveExpenseCat, deleteExpenseCat,
+  openAddSerial, saveSerial, deleteSerial,
+});
+</script>
+</body>
+</html>
