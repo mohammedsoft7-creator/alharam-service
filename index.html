@@ -922,7 +922,7 @@
             <!-- chips الأعطال المختارة -->
             <div id="fault-chips" style="display:flex;flex-wrap:wrap;gap:6px;min-height:32px;margin-bottom:8px"></div>
             <!-- dropdown -->
-            <select id="rep-fault-select" onchange="selectFaultChip(this)" style="width:100%;margin-bottom:8px">
+            <select id="rep-fault-select" style="width:100%;margin-bottom:8px">
               <option value="">➕ اختر عطل من القائمة...</option>
             </select>
             <!-- ملاحظة إضافية اختيارية -->
@@ -1611,6 +1611,20 @@
   </div>
 </div>
 
+<!-- ==================== DEBT HISTORY MODAL ==================== -->
+<div class="modal-overlay" id="modal-debt-history">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <div class="modal-title" id="debt-history-title">📋 سجل الدفعات</div>
+      <button class="modal-close" onclick="closeModal('modal-debt-history')">✕</button>
+    </div>
+    <div id="debt-history-content" style="padding:20px"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-debt-history')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
 <!-- Confirm Modal -->
 <div class="modal-overlay" id="modal-confirm">
   <div class="modal" style="max-width:400px">
@@ -2221,21 +2235,25 @@ function loadFaultsDropdown() {
   if (!sel) return;
   sel.innerHTML = '<option value="">➕ اختر عطل من القائمة...</option>' +
     faults.map(f => `<option value="${f.name}">${f.name}</option>`).join('');
+  // نزيل الـ listener القديم ونضيف جديد
+  sel.onchange = null;
+  sel.addEventListener('change', function() {
+    const val = this.value;
+    if (!val) return;
+    this.value = ''; // reset فوراً
+    const existing = [...document.querySelectorAll('#fault-chips .fault-chip-tag')].map(c=>c.dataset.v);
+    if (existing.includes(val)) return;
+    const chip = document.createElement('span');
+    chip.className = 'fault-chip-tag';
+    chip.dataset.v = val;
+    chip.style.cssText = 'display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:var(--accent);color:#fff;border-radius:20px;font-size:13px;cursor:default';
+    chip.innerHTML = `${val} <span onclick="this.parentElement.remove()" style="cursor:pointer;font-size:16px;line-height:1;opacity:.8">×</span>`;
+    document.getElementById('fault-chips').appendChild(chip);
+  });
 }
 
 function selectFaultChip(sel) {
-  const val = sel.value;
-  if (!val) return;
-  sel.value = '';
-  // لا تضيف نفس العطل مرتين
-  const existing = [...document.querySelectorAll('#fault-chips .fault-chip-tag')].map(c=>c.dataset.v);
-  if (existing.includes(val)) return;
-  const chip = document.createElement('span');
-  chip.className = 'fault-chip-tag';
-  chip.dataset.v = val;
-  chip.style.cssText = 'display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:var(--accent);color:#fff;border-radius:20px;font-size:13px;cursor:default';
-  chip.innerHTML = `${val} <span onclick="this.parentElement.remove()" style="cursor:pointer;font-size:16px;line-height:1;opacity:.8">×</span>`;
-  document.getElementById('fault-chips').appendChild(chip);
+  // kept for compatibility — logic moved to loadFaultsDropdown listener
 }
 
 function openFaultsMgr() {
@@ -3122,6 +3140,7 @@ function renderDebts() {
         <td>
           <div style="display:flex;gap:4px">
             ${remaining > 0 ? `<button class="btn btn-sm btn-success" onclick="openPayDebt('${d.id}')">💳 تسديد</button>` : ''}
+            <button class="btn btn-sm btn-info" onclick="showDebtHistory('${d.id}')">📋 الدفعات</button>
             <button class="btn btn-sm btn-secondary" onclick="editDebt('${d.id}')">✏️</button>
             <button class="btn btn-sm btn-danger" onclick="deleteDebt('${d.id}')">🗑️</button>
           </div>
@@ -3185,19 +3204,37 @@ function openPayDebt(id) {
 }
 
 function confirmPayDebt() {
-  const id = document.getElementById('pay-debt-id').value;
+  const id     = document.getElementById('pay-debt-id').value;
   const amount = parseFloat(document.getElementById('pay-debt-amount').value);
   if (!amount) { toast('أدخل المبلغ', 'error'); return; }
 
   const debts = DB.get(K_DEBTS);
-  const idx = debts.findIndex(d => d.id === id);
+  const idx   = debts.findIndex(d => d.id === id);
   if (idx === -1) return;
 
+  // سجل الدفعة
+  if (!debts[idx].payments) debts[idx].payments = [];
+  debts[idx].payments.push({ amount, date: today() });
   debts[idx].paid = (+debts[idx].paid || 0) + amount;
+
   const remaining = +debts[idx].amount - debts[idx].paid;
   if (remaining <= 0) debts[idx].status = 'مسدد';
 
   DB.set(K_DEBTS, debts);
+
+  // حدّث المدفوع في الصيانة المرتبطة
+  if (debts[idx].repairId) {
+    const repairs = DB.get(K_REPAIRS);
+    const rIdx = repairs.findIndex(r => r.id === debts[idx].repairId);
+    if (rIdx !== -1) {
+      repairs[rIdx].paid = (+repairs[rIdx].paid || 0) + amount;
+      if (+repairs[rIdx].paid >= +repairs[rIdx].total) {
+        repairs[rIdx].payStatus = 'كاش';
+      }
+      DB.set(K_REPAIRS, repairs);
+    }
+  }
+
   addCashTransaction('in', `تسديد دين: ${debts[idx].name}`, amount, today());
   closeModal('modal-pay-debt');
   renderDebts();
@@ -3262,13 +3299,16 @@ function renderCustomers() {
 
 function showCustomerHistory(name) {
   const repairs = DB.get(K_REPAIRS).filter(r => r.customer === name).sort((a,b) => b.date.localeCompare(a.date));
-  const totalPaid = repairs.reduce((s,r) => s + +r.paid, 0);
+  const debts   = DB.get(K_DEBTS).filter(d => d.name === name).sort((a,b) => b.date.localeCompare(a.date));
+
+  const totalPaid   = repairs.reduce((s,r) => s + +r.paid, 0);
   const totalAmount = repairs.reduce((s,r) => s + +r.total, 0);
-  const remaining = totalAmount - totalPaid;
+  const remaining   = totalAmount - totalPaid;
+  const totalDebt   = debts.reduce((s,d) => s + (+d.amount - +d.paid), 0);
 
   document.getElementById('cust-history-title').innerHTML = `📋 سجل العميل: <span style="color:var(--accent)">${name}</span>`;
 
-  if (repairs.length === 0) {
+  if (repairs.length === 0 && debts.length === 0) {
     document.getElementById('cust-history-content').innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>لا توجد عمليات لهذا العميل</p></div>`;
     openModal('modal-customer-history');
     return;
@@ -3276,61 +3316,202 @@ function showCustomerHistory(name) {
 
   document.getElementById('cust-history-content').innerHTML = `
     <!-- Summary -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
-      <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center">
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">عدد العمليات</div>
-        <div style="font-size:22px;font-weight:900;color:var(--info)">${repairs.length}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;padding:0 20px">
+      <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">عدد الصيانات</div>
+        <div style="font-size:20px;font-weight:900;color:var(--info)">${repairs.length}</div>
       </div>
-      <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center">
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">إجمالي المقبوض</div>
-        <div style="font-size:22px;font-weight:900;color:var(--success)">${formatNum(totalPaid)}</div>
+      <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">إجمالي المقبوض</div>
+        <div style="font-size:20px;font-weight:900;color:var(--success)">${formatNum(totalPaid)}</div>
         <div style="font-size:10px;color:var(--text-muted)">ليرة</div>
       </div>
-      <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center">
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">المتبقي</div>
-        <div style="font-size:22px;font-weight:900;color:${remaining>0?'var(--danger)':'var(--success)'}">${formatNum(remaining)}</div>
+      <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">ديون متبقية</div>
+        <div style="font-size:20px;font-weight:900;color:${totalDebt>0?'var(--danger)':'var(--success)'}">${formatNum(totalDebt)}</div>
         <div style="font-size:10px;color:var(--text-muted)">ليرة</div>
       </div>
     </div>
 
-    <!-- Repairs list -->
-    <div style="display:flex;flex-direction:column;gap:12px">
-      ${repairs.map((r, i) => `
+    <!-- تبويبات -->
+    <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin:0 20px 16px">
+      <button id="tab-repairs-btn" onclick="switchCustTab('repairs')"
+        style="padding:10px 20px;background:none;border:none;border-bottom:3px solid var(--accent);color:var(--accent);font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:-2px">
+        🔧 الصيانات (${repairs.length})
+      </button>
+      <button id="tab-debts-btn" onclick="switchCustTab('debts')"
+        style="padding:10px 20px;background:none;border:none;border-bottom:3px solid transparent;color:var(--text-muted);font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:-2px">
+        📋 الديون (${debts.length})
+      </button>
+    </div>
+
+    <!-- محتوى الصيانات -->
+    <div id="tab-repairs-content" style="padding:0 20px 20px;display:flex;flex-direction:column;gap:12px">
+      ${repairs.length === 0
+        ? `<div style="text-align:center;color:var(--text-muted);padding:20px">لا توجد صيانات</div>`
+        : repairs.map((r, i) => `
         <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;overflow:hidden">
-          <!-- Header -->
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:rgba(0,0,0,0.2);border-bottom:1px solid var(--border)">
-            <div style="display:flex;align-items:center;gap:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(0,0,0,0.2);border-bottom:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:8px">
               <span style="font-size:12px;color:var(--text-muted)">#${repairs.length - i}</span>
               <strong style="font-size:14px">${r.deviceType||'-'} ${r.model||''}</strong>
               <span class="badge ${r.workType==='سوفتوير'?'badge-success':r.workType==='هاردوير وسوفتوير'?'badge-warning':'badge-info'}" style="font-size:11px">${r.workType||'-'}</span>
             </div>
             <span style="font-size:12px;color:var(--text-muted)">${formatDate(r.date)}</span>
           </div>
-          <!-- Details -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;font-size:13px">
-            <div style="padding:10px 16px;border-left:1px solid var(--border);border-bottom:1px solid var(--border)">
+            <div style="padding:10px 14px;border-left:1px solid var(--border);border-bottom:1px solid var(--border)">
               <div style="color:var(--text-muted);font-size:11px;margin-bottom:3px">العطل</div>
               <div>${r.problem||'-'}</div>
             </div>
-            <div style="padding:10px 16px;border-bottom:1px solid var(--border)">
-              <div style="color:var(--text-muted);font-size:11px;margin-bottom:3px">القطع</div>
-              <div>${r.parts||'-'}</div>
+            <div style="padding:10px 14px;border-bottom:1px solid var(--border)">
+              <div style="color:var(--text-muted);font-size:11px;margin-bottom:3px">نوع العمل</div>
+              <div>${r.workType||'-'}</div>
             </div>
-            <div style="padding:10px 16px;border-left:1px solid var(--border)">
+            <div style="padding:10px 14px;border-left:1px solid var(--border)">
               <div style="color:var(--text-muted);font-size:11px;margin-bottom:3px">المبلغ الكلي</div>
               <div style="font-weight:700;color:var(--accent)">${formatNum(r.total)} ليرة</div>
             </div>
-            <div style="padding:10px 16px">
+            <div style="padding:10px 14px">
               <div style="color:var(--text-muted);font-size:11px;margin-bottom:3px">المدفوع</div>
-              <div style="font-weight:700;color:${+r.paid>= +r.total?'var(--success)':'var(--warning)'}">${formatNum(r.paid)} ليرة — ${getPayBadge(r.payStatus)}</div>
+              <div style="font-weight:700;color:${+r.paid>= +r.total?'var(--success)':'var(--warning)'}">${formatNum(r.paid)} ل — ${getPayBadge(r.payStatus)}</div>
             </div>
           </div>
         </div>
       `).join('')}
     </div>
+
+    <!-- محتوى الديون -->
+    <div id="tab-debts-content" style="padding:0 20px 20px;display:none;flex-direction:column;gap:12px">
+      ${debts.length === 0
+        ? `<div style="text-align:center;color:var(--text-muted);padding:20px">لا توجد ديون مسجلة</div>`
+        : debts.map(d => {
+            const rem = +d.amount - +d.paid;
+            const payments = d.payments || [];
+            return `
+            <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(0,0,0,0.2);border-bottom:1px solid var(--border)">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <strong>${d.name}</strong>
+                  ${rem <= 0 ? '<span class="badge badge-success">✅ مسدد</span>' : '<span class="badge badge-danger">⏳ مستحق</span>'}
+                </div>
+                <span style="font-size:12px;color:var(--text-muted)">${formatDate(d.date)}</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;font-size:13px;border-bottom:1px solid var(--border)">
+                <div style="padding:10px 14px;border-left:1px solid var(--border);text-align:center">
+                  <div style="color:var(--text-muted);font-size:11px;margin-bottom:3px">الدين</div>
+                  <div style="font-weight:700;color:var(--accent2)">${formatNum(d.amount)} ل</div>
+                </div>
+                <div style="padding:10px 14px;border-left:1px solid var(--border);text-align:center">
+                  <div style="color:var(--text-muted);font-size:11px;margin-bottom:3px">المدفوع</div>
+                  <div style="font-weight:700;color:var(--success)">${formatNum(d.paid)} ل</div>
+                </div>
+                <div style="padding:10px 14px;text-align:center">
+                  <div style="color:var(--text-muted);font-size:11px;margin-bottom:3px">المتبقي</div>
+                  <div style="font-weight:700;color:${rem>0?'var(--danger)':'var(--success)'}">${formatNum(rem)} ل</div>
+                </div>
+              </div>
+              ${payments.length > 0 ? `
+              <div style="padding:10px 14px">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">الدفعات (${payments.length})</div>
+                <div style="display:flex;flex-direction:column;gap:5px">
+                  ${payments.map((p,i) => `
+                    <div style="display:flex;justify-content:space-between;padding:6px 10px;background:rgba(0,0,0,0.15);border-radius:6px;font-size:12px">
+                      <span style="color:var(--text-muted)">دفعة ${i+1} — ${formatDate(p.date)}</span>
+                      <strong style="color:var(--success)">+ ${formatNum(p.amount)} ل</strong>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>` : ''}
+            </div>`;
+          }).join('')}
+    </div>
   `;
 
   openModal('modal-customer-history');
+}
+
+function showDebtHistory(id) {
+  const d = DB.get(K_DEBTS).find(x => x.id === id);
+  if (!d) return;
+
+  const remaining = +d.amount - +d.paid;
+  const payments  = d.payments || [];
+
+  document.getElementById('debt-history-title').innerHTML =
+    `📋 سجل الدفعات: <span style="color:var(--accent)">${d.name}</span>`;
+
+  document.getElementById('debt-history-content').innerHTML = `
+    <!-- ملخص -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
+      <div style="background:var(--bg-card2);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">إجمالي الدين</div>
+        <div style="font-size:20px;font-weight:900;color:var(--accent2)">${formatNum(d.amount)}</div>
+        <div style="font-size:10px;color:var(--text-muted)">ليرة</div>
+      </div>
+      <div style="background:var(--bg-card2);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">إجمالي المدفوع</div>
+        <div style="font-size:20px;font-weight:900;color:var(--success)">${formatNum(d.paid)}</div>
+        <div style="font-size:10px;color:var(--text-muted)">ليرة</div>
+      </div>
+      <div style="background:var(--bg-card2);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">المتبقي</div>
+        <div style="font-size:20px;font-weight:900;color:${remaining>0?'var(--danger)':'var(--success)'}">${formatNum(remaining)}</div>
+        <div style="font-size:10px;color:var(--text-muted)">ليرة</div>
+      </div>
+    </div>
+
+    <!-- شريط التقدم -->
+    <div style="margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:6px">
+        <span>نسبة السداد</span>
+        <span>${d.amount > 0 ? Math.round(+d.paid / +d.amount * 100) : 0}%</span>
+      </div>
+      <div style="height:8px;background:var(--bg-card2);border-radius:4px">
+        <div style="height:8px;width:${d.amount > 0 ? Math.min(100, Math.round(+d.paid/+d.amount*100)) : 0}%;background:${remaining<=0?'var(--success)':'var(--accent)'};border-radius:4px;transition:width .3s"></div>
+      </div>
+    </div>
+
+    <!-- سجل الدفعات -->
+    <div style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:10px">سجل الدفعات (${payments.length})</div>
+    ${payments.length === 0
+      ? `<div style="text-align:center;color:var(--text-muted);padding:20px">لا توجد دفعات مسجلة بعد</div>`
+      : `<div style="display:flex;flex-direction:column;gap:8px">
+          ${payments.map((p, i) => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg-card2);border-radius:8px;border-right:3px solid var(--success)">
+              <div>
+                <div style="font-size:12px;color:var(--text-muted)">دفعة ${i+1} — ${formatDate(p.date)}</div>
+              </div>
+              <strong style="color:var(--success);font-size:15px">+ ${formatNum(p.amount)} ل</strong>
+            </div>
+          `).join('')}
+        </div>`
+    }
+  `;
+
+  openModal('modal-debt-history');
+}
+
+function switchCustTab(tab) {
+  const repairsContent = document.getElementById('tab-repairs-content');
+  const debtsContent   = document.getElementById('tab-debts-content');
+  const repairsBtn     = document.getElementById('tab-repairs-btn');
+  const debtsBtn       = document.getElementById('tab-debts-btn');
+  if (tab === 'repairs') {
+    repairsContent.style.display = 'flex';
+    debtsContent.style.display   = 'none';
+    repairsBtn.style.borderBottomColor = 'var(--accent)';
+    repairsBtn.style.color             = 'var(--accent)';
+    debtsBtn.style.borderBottomColor   = 'transparent';
+    debtsBtn.style.color               = 'var(--text-muted)';
+  } else {
+    repairsContent.style.display = 'none';
+    debtsContent.style.display   = 'flex';
+    debtsBtn.style.borderBottomColor   = 'var(--accent)';
+    debtsBtn.style.color               = 'var(--accent)';
+    repairsBtn.style.borderBottomColor = 'transparent';
+    repairsBtn.style.color             = 'var(--text-muted)';
+  }
 }
 
 function openAddCustomer() {
@@ -3784,10 +3965,11 @@ Object.assign(window,{
   openDollarModal, updateDollarPreview, saveDollarOp,
   openAddDebt, editDebt, saveDebt, openPayDebt, confirmPayDebt, deleteDebt,
   renderCustomers, renderDevices, renderReports,
-  showCustomerHistory, toggleWorkList, renderInventory, printInventory,
+  showCustomerHistory, switchCustTab, showDebtHistory, toggleWorkList, renderInventory, printInventory,
   openAddCustomer, editCustomer, saveCustomer, deleteCustomer,
   loadSettings, saveSettings, exportBackup, importBackup, clearAllData,
   doLogin, doLogout,
+  selectFaultChip, saveFault, deleteFault, openFaultsMgr,
   openAddExpense, editExpense, saveExpense, deleteExpense, renderExpenses,
   openExpenseCatsMgr, saveExpenseCat, deleteExpenseCat,
   openAddSerial, saveSerial, deleteSerial,
