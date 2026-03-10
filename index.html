@@ -767,6 +767,9 @@
     </div>
 
     <div class="nav-section-title">الإدارة</div>
+    <div class="nav-item" onclick="showPage('employees')">
+      <span class="icon">👷</span> الموظفون
+    </div>
     <div class="nav-item" onclick="showPage('customers')">
       <span class="icon">👥</span> العملاء
     </div>
@@ -1239,6 +1242,39 @@
           </table>
         </div>
       </div>
+    </div>
+
+    <!-- ==================== EMPLOYEES ==================== -->
+    <div id="page-employees" class="page">
+      <div class="section-header">
+        <div class="section-title">👷 الموظفون</div>
+        <button class="btn btn-primary" onclick="openAddEmployee()">➕ إضافة موظف</button>
+      </div>
+
+      <!-- بطاقات إجمالية -->
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+        <div class="stat-card blue">
+          <div class="stat-label">عدد الموظفين</div>
+          <div class="stat-value" id="emp-count">0</div>
+          <div class="stat-sub">موظف</div>
+          <div class="stat-icon">👷</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">إجمالي السحوبات</div>
+          <div class="stat-value" id="emp-total-withdrawn">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">💸</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-label">سحوبات هذا الشهر</div>
+          <div class="stat-value" id="emp-month-withdrawn">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">📅</div>
+        </div>
+      </div>
+
+      <!-- قائمة الموظفين -->
+      <div id="employees-list"></div>
     </div>
 
     <!-- ==================== CUSTOMERS ==================== -->
@@ -1855,6 +1891,75 @@
   </div>
 </div>
 
+<!-- ==================== EMPLOYEE MODAL ==================== -->
+<div class="modal-overlay" id="modal-employee">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <div class="modal-title" id="emp-modal-title">➕ إضافة موظف</div>
+      <button class="modal-close" onclick="closeModal('modal-employee')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="emp-edit-id">
+      <div class="form-group">
+        <label>اسم الموظف *</label>
+        <input type="text" id="emp-name" placeholder="مثال: أحمد محمد">
+      </div>
+      <div class="form-group">
+        <label>رقم الهاتف (اختياري)</label>
+        <input type="text" id="emp-phone" placeholder="">
+      </div>
+      <div class="form-group">
+        <label>ملاحظة (اختياري)</label>
+        <input type="text" id="emp-note" placeholder="">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-employee')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveEmployee()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== EMPLOYEE WITHDRAWAL MODAL ==================== -->
+<div class="modal-overlay" id="modal-emp-withdraw">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <div class="modal-title" id="emp-withdraw-title">💸 تسجيل سحب</div>
+      <button class="modal-close" onclick="closeModal('modal-emp-withdraw')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="emp-withdraw-id">
+      <div class="form-group">
+        <label>المبلغ (ليرة) *</label>
+        <input type="number" id="emp-withdraw-amount" placeholder="0" min="0">
+      </div>
+      <div class="form-group">
+        <label>طريقة الدفع</label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="emp-pay-method" value="كاش" checked> 💵 كاش
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="emp-pay-method" value="بنك"> 🏦 بنك
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>التاريخ</label>
+        <input type="date" id="emp-withdraw-date">
+      </div>
+      <div class="form-group">
+        <label>ملاحظة (اختياري)</label>
+        <input type="text" id="emp-withdraw-note" placeholder="مثال: سلفة، راتب جزئي...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-emp-withdraw')">إلغاء</button>
+      <button class="btn btn-danger" onclick="saveEmpWithdraw()">💾 تسجيل السحب</button>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== SERIAL MODAL ==================== -->
 <div class="modal-overlay" id="modal-serial">
   <div class="modal" style="max-width:420px">
@@ -1910,10 +2015,10 @@ const auth = getAuth(app);
 setPersistence(auth, indexedDBLocalPersistence).catch(()=>{});
 
 // ── Cache (in-memory mirror of Firestore) ───────────────
-const cache = { repairs:[], cash_transactions:[], debts:[], customers:[], settings:{} };
+const cache = { repairs:[], cash_transactions:[], debts:[], customers:[], settings:{}, faults:[], expenses:[], exp_categories:[], employees:[] };
 
 // ── DB API (sync reads, async writes) ───────────────────
-const K_REPAIRS='repairs', K_CASH='cash_transactions', K_DEBTS='debts', K_CUSTOMERS='customers', K_SETTINGS='settings', K_FAULTS='faults', K_EXPENSES='expenses', K_EXP_CATS='exp_categories';
+const K_REPAIRS='repairs', K_CASH='cash_transactions', K_DEBTS='debts', K_CUSTOMERS='customers', K_SETTINGS='settings', K_FAULTS='faults', K_EXPENSES='expenses', K_EXP_CATS='exp_categories', K_EMPLOYEES='employees';
 
 const DB = {
   get:    k => [...(cache[k]||[])],
@@ -1944,7 +2049,7 @@ const DB = {
 let started=false; const unsubs=[];
 function startListeners(){
   if(started) return; started=true;
-  [K_REPAIRS,K_CASH,K_DEBTS,K_CUSTOMERS,K_FAULTS,K_EXPENSES,K_EXP_CATS].forEach(col=>{
+  [K_REPAIRS,K_CASH,K_DEBTS,K_CUSTOMERS,K_FAULTS,K_EXPENSES,K_EXP_CATS,K_EMPLOYEES].forEach(col=>{
     unsubs.push(onSnapshot(collection(fdb,col), snap=>{
       cache[col]=snap.docs.map(d=>({id:d.id,...d.data()}));
       refreshCurrentPage();
@@ -1969,6 +2074,7 @@ function refreshCurrentPage(){
   else if(id==='devices')   renderDevices();
   else if(id==='cash')      renderCash();
   else if(id==='expenses')  renderExpenses();
+  else if(id==='employees') renderEmployees();
   else if(id==='debts')     renderDebts();
   else if(id==='customers') renderCustomers();
   else if(id==='reports')   renderReports();
@@ -2034,7 +2140,7 @@ function showPage(id) {
   const map = {
     'dashboard':'لوحة التحكم','new-repair':'تسجيل صيانة جديدة',
     'devices':'الأجهزة','cash':'الصندوق','expenses':'المصاريف','debts':'الديون',
-    'customers':'العملاء','reports':'التقارير','settings':'الإعدادات'
+    'employees':'الموظفون','customers':'العملاء','reports':'التقارير','settings':'الإعدادات'
   };
   document.getElementById('page-title').textContent = map[id] || '';
 
@@ -2050,6 +2156,7 @@ function showPage(id) {
   if (id === 'devices') renderDevices();
   if (id === 'cash') renderCash();
   if (id === 'expenses') renderExpenses();
+  if (id === 'employees') renderEmployees();
   if (id === 'debts') renderDebts();
   if (id === 'customers') renderCustomers();
   if (id === 'reports') renderReports();
@@ -2880,6 +2987,197 @@ function saveDollarOp() {
   closeModal('modal-dollar');
   renderCash();
   toast('✅ تم التسجيل بنجاح');
+}
+
+// ==================== EMPLOYEES ====================
+function renderEmployees() {
+  const employees = DB.get(K_EMPLOYEES).sort((a,b) => (a.name||'').localeCompare(b.name||''));
+  const monthStr  = today().slice(0,7);
+
+  // إجماليات
+  const allWithdrawals = employees.flatMap(e => e.withdrawals || []);
+  const totalAll   = allWithdrawals.reduce((s,w) => s + +w.amount, 0);
+  const totalMonth = allWithdrawals.filter(w => w.date?.startsWith(monthStr)).reduce((s,w) => s + +w.amount, 0);
+
+  document.getElementById('emp-count').textContent           = employees.length;
+  document.getElementById('emp-total-withdrawn').textContent = formatNum(totalAll);
+  document.getElementById('emp-month-withdrawn').textContent = formatNum(totalMonth);
+
+  const el = document.getElementById('employees-list');
+  if (employees.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">👷</div><p>لا يوجد موظفون — أضف موظفاً أولاً</p></div>`;
+    return;
+  }
+
+  el.innerHTML = employees.map(emp => {
+    const withdrawals = (emp.withdrawals || []).sort((a,b) => b.date.localeCompare(a.date));
+    const total = withdrawals.reduce((s,w) => s + +w.amount, 0);
+    const monthTotal = withdrawals.filter(w => w.date?.startsWith(monthStr)).reduce((s,w) => s + +w.amount, 0);
+    const isOpen = emp._open;
+
+    return `
+    <div class="card" style="margin-bottom:16px">
+      <!-- رأس الموظف -->
+      <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleEmployeeCard('${emp.id}')">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:42px;height:42px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">👷</div>
+          <div>
+            <div style="font-size:16px;font-weight:700">${emp.name}</div>
+            ${emp.phone ? `<div style="font-size:12px;color:var(--text-muted)">${emp.phone}</div>` : ''}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="text-align:center">
+            <div style="font-size:11px;color:var(--text-muted)">الشهر</div>
+            <div style="font-size:14px;font-weight:700;color:var(--warning)">${formatNum(monthTotal)} ل</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:11px;color:var(--text-muted)">الإجمالي</div>
+            <div style="font-size:14px;font-weight:700;color:var(--danger)">${formatNum(total)} ل</div>
+          </div>
+          <button class="btn btn-sm btn-primary" onclick="event.stopPropagation();openEmpWithdraw('${emp.id}')">💸 سحب</button>
+          <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();editEmployee('${emp.id}')">✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteEmployee('${emp.id}')">🗑️</button>
+          <span style="color:var(--text-muted);font-size:18px">${isOpen ? '▲' : '▼'}</span>
+        </div>
+      </div>
+
+      <!-- سجل السحوبات -->
+      ${isOpen ? `
+      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px">
+        ${withdrawals.length === 0
+          ? `<div style="text-align:center;color:var(--text-muted);padding:12px">لا توجد سحوبات مسجلة</div>`
+          : `<div style="display:flex;flex-direction:column;gap:6px">
+              ${withdrawals.map((w,i) => `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-card2);border-radius:8px;border-right:3px solid var(--danger)">
+                  <div>
+                    <div style="font-size:13px;font-weight:600">${w.note || 'سحب'}</div>
+                    <div style="font-size:11px;color:var(--text-muted)">${formatDate(w.date)} — ${w.method === 'بنك' ? '🏦 بنك' : '💵 كاش'}</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <strong style="color:var(--danger)">− ${formatNum(w.amount)} ل</strong>
+                    <button class="btn btn-sm btn-danger" onclick="deleteEmpWithdrawal('${emp.id}',${i})">🗑️</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>`
+        }
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function toggleEmployeeCard(id) {
+  const employees = DB.get(K_EMPLOYEES);
+  const idx = employees.findIndex(e => e.id === id);
+  if (idx === -1) return;
+  employees[idx]._open = !employees[idx]._open;
+  // تحديث محلي بدون حفظ Firestore
+  cache.employees = employees;
+  renderEmployees();
+}
+
+function openAddEmployee() {
+  document.getElementById('emp-edit-id').value = '';
+  document.getElementById('emp-modal-title').textContent = '➕ إضافة موظف';
+  document.getElementById('emp-name').value  = '';
+  document.getElementById('emp-phone').value = '';
+  document.getElementById('emp-note').value  = '';
+  openModal('modal-employee');
+}
+
+function editEmployee(id) {
+  const e = DB.get(K_EMPLOYEES).find(x => x.id === id);
+  if (!e) return;
+  document.getElementById('emp-edit-id').value = id;
+  document.getElementById('emp-modal-title').textContent = '✏️ تعديل موظف';
+  document.getElementById('emp-name').value  = e.name  || '';
+  document.getElementById('emp-phone').value = e.phone || '';
+  document.getElementById('emp-note').value  = e.note  || '';
+  openModal('modal-employee');
+}
+
+function saveEmployee() {
+  const name = document.getElementById('emp-name').value.trim();
+  if (!name) { toast('يرجى إدخال اسم الموظف', 'error'); return; }
+  const editId = document.getElementById('emp-edit-id').value;
+  const employees = DB.get(K_EMPLOYEES);
+  if (editId) {
+    const idx = employees.findIndex(e => e.id === editId);
+    if (idx >= 0) { employees[idx].name = name; employees[idx].phone = document.getElementById('emp-phone').value.trim(); employees[idx].note = document.getElementById('emp-note').value.trim(); }
+  } else {
+    employees.push({ id: uid(), name, phone: document.getElementById('emp-phone').value.trim(), note: document.getElementById('emp-note').value.trim(), withdrawals: [] });
+  }
+  DB.set(K_EMPLOYEES, employees);
+  closeModal('modal-employee');
+  renderEmployees();
+  toast('✅ تم الحفظ');
+}
+
+function deleteEmployee(id) {
+  document.getElementById('confirm-message').textContent = 'هل أنت متأكد من حذف هذا الموظف وكل سحوباته؟';
+  document.getElementById('confirm-ok').onclick = () => {
+    DB.set(K_EMPLOYEES, DB.get(K_EMPLOYEES).filter(e => e.id !== id));
+    closeModal('modal-confirm');
+    renderEmployees();
+    toast('تم الحذف', 'info');
+  };
+  openModal('modal-confirm');
+}
+
+function openEmpWithdraw(id) {
+  const e = DB.get(K_EMPLOYEES).find(x => x.id === id);
+  if (!e) return;
+  document.getElementById('emp-withdraw-id').value = id;
+  document.getElementById('emp-withdraw-title').textContent = `💸 سحب — ${e.name}`;
+  document.getElementById('emp-withdraw-amount').value = '';
+  document.getElementById('emp-withdraw-date').value   = today();
+  document.getElementById('emp-withdraw-note').value   = '';
+  document.querySelectorAll('input[name="emp-pay-method"]')[0].checked = true;
+  openModal('modal-emp-withdraw');
+}
+
+function saveEmpWithdraw() {
+  const id     = document.getElementById('emp-withdraw-id').value;
+  const amount = parseFloat(document.getElementById('emp-withdraw-amount').value);
+  if (!amount) { toast('يرجى إدخال المبلغ', 'error'); return; }
+
+  const employees = DB.get(K_EMPLOYEES);
+  const idx = employees.findIndex(e => e.id === id);
+  if (idx === -1) return;
+
+  const method = document.querySelector('input[name="emp-pay-method"]:checked').value;
+  const date   = document.getElementById('emp-withdraw-date').value || today();
+  const note   = document.getElementById('emp-withdraw-note').value.trim();
+
+  if (!employees[idx].withdrawals) employees[idx].withdrawals = [];
+  employees[idx].withdrawals.push({ amount, method, date, note });
+
+  DB.set(K_EMPLOYEES, employees);
+
+  // سجل بالصندوق تلقائياً
+  const cashType = method === 'بنك' ? 'bank_out' : 'out';
+  addCashTransaction(cashType, `سحب موظف: ${employees[idx].name}${note ? ' — ' + note : ''}`, amount, date, employees[idx].name);
+
+  closeModal('modal-emp-withdraw');
+  renderEmployees();
+  toast('✅ تم تسجيل السحب');
+}
+
+function deleteEmpWithdrawal(empId, widx) {
+  document.getElementById('confirm-message').textContent = 'حذف هذا السحب؟';
+  document.getElementById('confirm-ok').onclick = () => {
+    const employees = DB.get(K_EMPLOYEES);
+    const idx = employees.findIndex(e => e.id === empId);
+    if (idx >= 0 && employees[idx].withdrawals) {
+      employees[idx].withdrawals.splice(widx, 1);
+      DB.set(K_EMPLOYEES, employees);
+    }
+    closeModal('modal-confirm');
+    renderEmployees();
+    toast('تم الحذف', 'info');
+  };
+  openModal('modal-confirm');
 }
 
 // ==================== EXPENSES ====================
@@ -3970,7 +4268,8 @@ Object.assign(window,{
   loadSettings, saveSettings, exportBackup, importBackup, clearAllData,
   doLogin, doLogout,
   selectFaultChip, saveFault, deleteFault, openFaultsMgr,
-  openAddExpense, editExpense, saveExpense, deleteExpense, renderExpenses,
+  openAddEmployee, editEmployee, saveEmployee, deleteEmployee, toggleEmployeeCard,
+  openEmpWithdraw, saveEmpWithdraw, deleteEmpWithdrawal,
   openExpenseCatsMgr, saveExpenseCat, deleteExpenseCat,
   openAddSerial, saveSerial, deleteSerial,
 });
