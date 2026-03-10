@@ -1332,44 +1332,50 @@
       </div>
 
       <div class="stats-grid">
-        <div class="stat-card orange">
+        <div class="stat-card orange" onclick="showDrill('today-profit')" style="cursor:pointer">
           <div class="stat-label">أرباح اليوم</div>
           <div class="stat-value" id="rep-today">0</div>
           <div class="stat-sub">ليرة</div>
           <div class="stat-icon">📈</div>
         </div>
-        <div class="stat-card teal">
+        <div class="stat-card teal" onclick="showDrill('month-profit')" style="cursor:pointer">
           <div class="stat-label">أرباح الشهر</div>
           <div class="stat-value" id="rep-month">0</div>
           <div class="stat-sub">ليرة</div>
           <div class="stat-icon">📅</div>
         </div>
-        <div class="stat-card green">
+        <div class="stat-card green" onclick="showDrill('cash-in')" style="cursor:pointer">
           <div class="stat-label">إجمالي المقبوضات (كاش)</div>
           <div class="stat-value" id="rep-total-in">0</div>
           <div class="stat-sub">ليرة</div>
         </div>
-        <div class="stat-card blue">
+        <div class="stat-card blue" onclick="showDrill('bank-in')" style="cursor:pointer">
           <div class="stat-label">إجمالي مقبوضات البنك</div>
           <div class="stat-value" id="rep-bank-in">0</div>
           <div class="stat-sub">ليرة</div>
           <div class="stat-icon">🏦</div>
         </div>
-        <div class="stat-card red">
+        <div class="stat-card red" onclick="showDrill('cash-out')" style="cursor:pointer">
           <div class="stat-label">إجمالي المدفوعات</div>
           <div class="stat-value" id="rep-total-out">0</div>
           <div class="stat-sub">ليرة</div>
         </div>
-        <div class="stat-card orange">
+        <div class="stat-card orange" onclick="showDrill('expenses')" style="cursor:pointer">
           <div class="stat-label">إجمالي المصاريف</div>
           <div class="stat-value" id="rep-expenses">0</div>
           <div class="stat-sub">ليرة</div>
           <div class="stat-icon">💸</div>
         </div>
-        <div class="stat-card blue">
+        <div class="stat-card blue" onclick="showDrill('fixed')" style="cursor:pointer">
           <div class="stat-label">أجهزة تم تصليحها</div>
           <div class="stat-value" id="rep-fixed">0</div>
           <div class="stat-sub">جهاز</div>
+        </div>
+        <div class="stat-card red" onclick="showDrill('parts-cost')" style="cursor:pointer">
+          <div class="stat-label">إجمالي تكلفة القطع</div>
+          <div class="stat-value" id="rep-parts-total">0</div>
+          <div class="stat-sub">ليرة</div>
+          <div class="stat-icon">🔩</div>
         </div>
       </div>
 
@@ -1960,6 +1966,20 @@
   </div>
 </div>
 
+<!-- ==================== REPORT DRILLDOWN MODAL ==================== -->
+<div class="modal-overlay" id="modal-report-drill">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <div class="modal-title" id="drill-title">السجل</div>
+      <button class="modal-close" onclick="closeModal('modal-report-drill')">✕</button>
+    </div>
+    <div id="drill-content" style="padding:20px;max-height:60vh;overflow-y:auto"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-report-drill')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== SERIAL MODAL ==================== -->
 <div class="modal-overlay" id="modal-serial">
   <div class="modal" style="max-width:420px">
@@ -2315,8 +2335,8 @@ function initRepairForm() {
   document.getElementById('rep-phone').value = '';
   document.getElementById('rep-model').value = '';
   document.getElementById('rep-problem').value = '';
-  document.getElementById('rep-parts-cost').value = '';
-  document.getElementById('rep-paid').value = '';
+  document.getElementById('rep-parts-cost').value  = '';
+  document.getElementById('rep-paid').value         = '';
   document.querySelectorAll('input[name="pay-status"]')[0].checked = true;
   document.getElementById('debt-field').style.display = 'none';
   document.getElementById('debt-amount-field').style.display = 'none';
@@ -2420,7 +2440,7 @@ function saveRepair() {
   const paid       = parseFloat(document.getElementById('rep-paid').value) || 0;
   const debtAmount = (payStatus === 'دين' || payStatus === 'جزئي')
     ? (parseFloat(document.getElementById('rep-debt-amount').value) || 0) : 0;
-  const total = paid + debtAmount || partsCost;
+  const total = paid; // الربح = المقبوض فقط
 
   const repair = {
     id: uid(),
@@ -2611,21 +2631,22 @@ function saveEditRepair() {
   if (idx === -1) return;
 
   const partsCost = parseFloat(document.getElementById('er-parts-cost').value) || 0;
+  const paid      = parseFloat(document.getElementById('er-paid').value) || 0;
 
   repairs[idx] = {
     ...repairs[idx],
-    date: document.getElementById('er-date').value,
-    customer: document.getElementById('er-customer').value,
-    phone: document.getElementById('er-phone').value,
+    date:       document.getElementById('er-date').value,
+    customer:   document.getElementById('er-customer').value,
+    phone:      document.getElementById('er-phone').value,
     deviceType: document.getElementById('er-type').value,
-    model: document.getElementById('er-model').value,
-    workType: document.getElementById('er-work-type').value,
-    problem: document.getElementById('er-problem').value,
-    parts: document.getElementById('er-parts').value,
+    model:      document.getElementById('er-model').value,
+    workType:   document.getElementById('er-work-type').value,
+    problem:    document.getElementById('er-problem').value,
+    parts:      document.getElementById('er-parts').value,
     partsCost,
-    fee: 0,
-    total: partsCost,
-    paid: parseFloat(document.getElementById('er-paid').value) || 0,
+    fee:   0,
+    total: paid,
+    paid,
   };
 
   DB.set(K_REPAIRS, repairs);
@@ -3138,13 +3159,17 @@ function openEmpWithdraw(id) {
 }
 
 function saveEmpWithdraw() {
+  const btn = document.querySelector('#modal-emp-withdraw .btn-danger');
+  if (btn?.disabled) return;
+  if (btn) btn.disabled = true;
+
   const id     = document.getElementById('emp-withdraw-id').value;
   const amount = parseFloat(document.getElementById('emp-withdraw-amount').value);
-  if (!amount) { toast('يرجى إدخال المبلغ', 'error'); return; }
+  if (!amount) { toast('يرجى إدخال المبلغ', 'error'); if(btn) btn.disabled=false; return; }
 
   const employees = DB.get(K_EMPLOYEES);
   const idx = employees.findIndex(e => e.id === id);
-  if (idx === -1) return;
+  if (idx === -1) { if(btn) btn.disabled=false; return; }
 
   const method = document.querySelector('input[name="emp-pay-method"]:checked').value;
   const date   = document.getElementById('emp-withdraw-date').value || today();
@@ -3155,13 +3180,13 @@ function saveEmpWithdraw() {
 
   DB.set(K_EMPLOYEES, employees);
 
-  // سجل بالصندوق تلقائياً
   const cashType = method === 'بنك' ? 'bank_out' : 'out';
   addCashTransaction(cashType, `سحب موظف: ${employees[idx].name}${note ? ' — ' + note : ''}`, amount, date, employees[idx].name);
 
   closeModal('modal-emp-withdraw');
   renderEmployees();
   toast('✅ تم تسجيل السحب');
+  setTimeout(() => { if(btn) btn.disabled=false; }, 1000);
 }
 
 function deleteEmpWithdrawal(empId, widx) {
@@ -3867,6 +3892,124 @@ function deleteCustomer(id) {
 }
 
 // ==================== REPORTS ====================
+function showDrill(type) {
+  const period   = document.getElementById('report-period')?.value || 'month';
+  const todayStr = today();
+  const monthStr = todayStr.slice(0,7);
+
+  function inPeriod(date) {
+    if (!date) return false;
+    if (period === 'all') return true;
+    if (period === 'today') return date === todayStr;
+    if (period === 'month') return date.startsWith(monthStr);
+    if (period === 'year')  return date.startsWith(todayStr.slice(0,4));
+    if (period === 'week') {
+      const d = new Date(date);
+      const diff = (new Date() - d) / (1000*60*60*24);
+      return diff <= 7;
+    }
+    return false;
+  }
+
+  const repairs  = DB.get(K_REPAIRS).filter(r => inPeriod(r.date));
+  const cash     = DB.get(K_CASH).filter(c => inPeriod(c.date));
+  const expenses = DB.get(K_EXPENSES).filter(e => inPeriod(e.date));
+
+  let title = '', rows = '';
+
+  if (type === 'today-profit' || type === 'month-profit') {
+    title = type === 'today-profit' ? '📈 تفاصيل أرباح اليوم' : '📅 تفاصيل أرباح الشهر';
+    const data = type === 'today-profit'
+      ? DB.get(K_REPAIRS).filter(r => r.date === todayStr)
+      : DB.get(K_REPAIRS).filter(r => r.date?.startsWith(monthStr));
+    rows = data.length === 0
+      ? '<div style="text-align:center;color:var(--text-muted);padding:20px">لا توجد بيانات</div>'
+      : data.sort((a,b)=>b.date.localeCompare(a.date)).map(r => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-card2);border-radius:8px;margin-bottom:6px;border-right:3px solid var(--accent)">
+          <div>
+            <div style="font-weight:600">${r.customer} — ${r.model||'-'}</div>
+            <div style="font-size:12px;color:var(--text-muted)">${formatDate(r.date)} | ${r.problem||'-'}</div>
+          </div>
+          <div style="text-align:left">
+            <div style="color:var(--success);font-weight:700">مقبوض: ${formatNum(r.paid)} ل</div>
+            ${+r.partsCost > 0 ? `<div style="font-size:12px;color:var(--danger)">قطع: ${formatNum(r.partsCost)} ل</div>` : ''}
+            <div style="font-size:13px;font-weight:700;color:var(--accent)">ربح: ${formatNum(+r.paid - +r.partsCost)} ل</div>
+          </div>
+        </div>`).join('');
+
+  } else if (type === 'cash-in') {
+    title = '💵 تفاصيل المقبوضات كاش';
+    const data = cash.filter(c => c.type === 'in');
+    rows = _drillCashRows(data, 'success');
+
+  } else if (type === 'bank-in') {
+    title = '🏦 تفاصيل مقبوضات البنك';
+    const data = cash.filter(c => c.type === 'bank_in');
+    rows = _drillCashRows(data, 'info');
+
+  } else if (type === 'cash-out') {
+    title = '💸 تفاصيل المدفوعات';
+    const data = cash.filter(c => c.type === 'out' || c.type === 'bank_out');
+    rows = _drillCashRows(data, 'danger');
+
+  } else if (type === 'expenses') {
+    title = '💸 تفاصيل المصاريف';
+    rows = expenses.length === 0
+      ? '<div style="text-align:center;color:var(--text-muted);padding:20px">لا توجد مصاريف</div>'
+      : expenses.sort((a,b)=>b.date.localeCompare(a.date)).map(e => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-card2);border-radius:8px;margin-bottom:6px;border-right:3px solid var(--danger)">
+          <div>
+            <div style="font-weight:600">${e.desc}</div>
+            <div style="font-size:12px;color:var(--text-muted)">${formatDate(e.date)} | 🏷️ ${e.category||'-'}${e.to?' | 👤 '+e.to:''}</div>
+          </div>
+          <strong style="color:var(--danger)">− ${formatNum(e.amount)} ل</strong>
+        </div>`).join('');
+
+  } else if (type === 'fixed') {
+    title = '🔧 تفاصيل الأجهزة المصلّحة';
+    rows = repairs.length === 0
+      ? '<div style="text-align:center;color:var(--text-muted);padding:20px">لا توجد بيانات</div>'
+      : repairs.sort((a,b)=>b.date.localeCompare(a.date)).map(r => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-card2);border-radius:8px;margin-bottom:6px">
+          <div>
+            <div style="font-weight:600">${r.customer} — ${r.model||'-'}</div>
+            <div style="font-size:12px;color:var(--text-muted)">${formatDate(r.date)} | ${r.problem||'-'}</div>
+          </div>
+          <span class="badge badge-success">${r.workType||'-'}</span>
+        </div>`).join('');
+
+  } else if (type === 'parts-cost') {
+    title = '🔩 تفاصيل تكلفة القطع';
+    const data = repairs.filter(r => +r.partsCost > 0);
+    rows = data.length === 0
+      ? '<div style="text-align:center;color:var(--text-muted);padding:20px">لا توجد قطع مسجلة</div>'
+      : data.sort((a,b)=>b.date.localeCompare(a.date)).map(r => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-card2);border-radius:8px;margin-bottom:6px;border-right:3px solid #e55">
+          <div>
+            <div style="font-weight:600">${r.customer} — ${r.model||'-'}</div>
+            <div style="font-size:12px;color:var(--text-muted)">${formatDate(r.date)}</div>
+          </div>
+          <strong style="color:var(--danger)">− ${formatNum(r.partsCost)} ل</strong>
+        </div>`).join('');
+  }
+
+  document.getElementById('drill-title').textContent = title;
+  document.getElementById('drill-content').innerHTML  = rows;
+  openModal('modal-report-drill');
+}
+
+function _drillCashRows(data, color) {
+  if (data.length === 0) return '<div style="text-align:center;color:var(--text-muted);padding:20px">لا توجد بيانات</div>';
+  return data.sort((a,b)=>b.date.localeCompare(a.date)).map(c => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-card2);border-radius:8px;margin-bottom:6px;border-right:3px solid var(--${color})">
+      <div>
+        <div style="font-weight:600">${c.desc}</div>
+        <div style="font-size:12px;color:var(--text-muted)">${formatDate(c.date)}${c.person?' | 👤 '+c.person:''}</div>
+      </div>
+      <strong style="color:var(--${color})">${formatNum(c.amount)} ل</strong>
+    </div>`).join('');
+}
+
 function renderReports() {
   const period = document.getElementById('report-period').value;
   const repairs = DB.get(K_REPAIRS);
@@ -3894,9 +4037,9 @@ function renderReports() {
   const filteredExpenses = DB.get(K_EXPENSES).filter(e => inPeriod(e.date));
 
   const todayProfit = repairs.filter(r => r.date === todayStr)
-    .reduce((s,r) => s + (+r.total - +r.partsCost), 0);
+    .reduce((s,r) => s + (+r.paid - +r.partsCost), 0);
   const monthProfit = repairs.filter(r => r.date && r.date.startsWith(monthStr))
-    .reduce((s,r) => s + (+r.total - +r.partsCost), 0);
+    .reduce((s,r) => s + (+r.paid - +r.partsCost), 0);
 
   const totalIn    = filteredCash.filter(c => c.type === 'in').reduce((s,c) => s + +c.amount, 0);
   const totalOut   = filteredCash.filter(c => c.type === 'out').reduce((s,c) => s + +c.amount, 0);
@@ -3907,18 +4050,21 @@ function renderReports() {
   document.getElementById('rep-month').textContent    = formatNum(monthProfit);
   document.getElementById('rep-total-in').textContent = formatNum(totalIn);
   document.getElementById('rep-total-out').textContent= formatNum(totalOut);
-  document.getElementById('rep-bank-in').textContent  = formatNum(bankIn);
-  document.getElementById('rep-expenses').textContent = formatNum(totalExp);
-  document.getElementById('rep-fixed').textContent    = filteredRepairs.length;
+  const totalPartsCost = filteredRepairs.reduce((s,r) => s + +r.partsCost, 0);
+
+  document.getElementById('rep-bank-in').textContent    = formatNum(bankIn);
+  document.getElementById('rep-expenses').textContent   = formatNum(totalExp);
+  document.getElementById('rep-fixed').textContent      = filteredRepairs.length;
+  document.getElementById('rep-parts-total').textContent = formatNum(totalPartsCost);
 
   // Hardware vs Software — revenue minus parts cost = actual profit per section
   const hwOnly   = filteredRepairs.filter(r => r.workType === 'هاردوير');
   const swOnly   = filteredRepairs.filter(r => r.workType === 'سوفتوير');
   const hwswBoth = filteredRepairs.filter(r => r.workType === 'هاردوير وسوفتوير');
 
-  const hwIncome   = hwOnly.reduce((s,r)   => s + (+r.total - +r.partsCost), 0);
-  const swIncome   = swOnly.reduce((s,r)   => s + (+r.total - +r.partsCost), 0);
-  const bothIncome = hwswBoth.reduce((s,r) => s + (+r.total - +r.partsCost), 0);
+  const hwIncome   = hwOnly.reduce((s,r)   => s + (+r.paid - +r.partsCost), 0);
+  const swIncome   = swOnly.reduce((s,r)   => s + (+r.paid - +r.partsCost), 0);
+  const bothIncome = hwswBoth.reduce((s,r) => s + (+r.paid - +r.partsCost), 0);
 
   const hwLabel = hwswBoth.length > 0 ? `${hwOnly.length} + ${hwswBoth.length} مشترك` : `${hwOnly.length}`;
   const swLabel = hwswBoth.length > 0 ? `${swOnly.length} + ${hwswBoth.length} مشترك` : `${swOnly.length}`;
@@ -4262,7 +4408,7 @@ Object.assign(window,{
   openAddCash, saveCash, deleteCash, renderCash, openTransfer, updateTransferLabels, saveTransfer,
   openDollarModal, updateDollarPreview, saveDollarOp,
   openAddDebt, editDebt, saveDebt, openPayDebt, confirmPayDebt, deleteDebt,
-  renderCustomers, renderDevices, renderReports,
+  renderCustomers, renderDevices, renderReports, showDrill,
   showCustomerHistory, switchCustTab, showDebtHistory, toggleWorkList, renderInventory, printInventory,
   openAddCustomer, editCustomer, saveCustomer, deleteCustomer,
   loadSettings, saveSettings, exportBackup, importBackup, clearAllData,
