@@ -4037,9 +4037,9 @@ function renderReports() {
   const filteredExpenses = DB.get(K_EXPENSES).filter(e => inPeriod(e.date));
 
   const todayProfit = repairs.filter(r => r.date === todayStr)
-    .reduce((s,r) => s + (+r.paid - +r.partsCost), 0);
+    .reduce((s,r) => s + (+r.paid > 0 ? +r.paid - +r.partsCost : 0), 0);
   const monthProfit = repairs.filter(r => r.date && r.date.startsWith(monthStr))
-    .reduce((s,r) => s + (+r.paid - +r.partsCost), 0);
+    .reduce((s,r) => s + (+r.paid > 0 ? +r.paid - +r.partsCost : 0), 0);
 
   const totalIn    = filteredCash.filter(c => c.type === 'in').reduce((s,c) => s + +c.amount, 0);
   const totalOut   = filteredCash.filter(c => c.type === 'out').reduce((s,c) => s + +c.amount, 0);
@@ -4062,9 +4062,9 @@ function renderReports() {
   const swOnly   = filteredRepairs.filter(r => r.workType === 'سوفتوير');
   const hwswBoth = filteredRepairs.filter(r => r.workType === 'هاردوير وسوفتوير');
 
-  const hwIncome   = hwOnly.reduce((s,r)   => s + (+r.paid - +r.partsCost), 0);
-  const swIncome   = swOnly.reduce((s,r)   => s + (+r.paid - +r.partsCost), 0);
-  const bothIncome = hwswBoth.reduce((s,r) => s + (+r.paid - +r.partsCost), 0);
+  const hwIncome   = hwOnly.reduce((s,r)   => s + (+r.paid > 0 ? +r.paid - +r.partsCost : 0), 0);
+  const swIncome   = swOnly.reduce((s,r)   => s + (+r.paid > 0 ? +r.paid - +r.partsCost : 0), 0);
+  const bothIncome = hwswBoth.reduce((s,r) => s + (+r.paid > 0 ? +r.paid - +r.partsCost : 0), 0);
 
   const hwLabel = hwswBoth.length > 0 ? `${hwOnly.length} + ${hwswBoth.length} مشترك` : `${hwOnly.length}`;
   const swLabel = hwswBoth.length > 0 ? `${swOnly.length} + ${hwswBoth.length} مشترك` : `${swOnly.length}`;
