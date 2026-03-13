@@ -1,0 +1,29 @@
+{
+  "name": "الهرم للاتصالات والصيانة",
+  "short_name": "الهرم",
+  "description": "نظام إدارة محل صيانة الجوالات",
+  "start_url": "/alharam-service/",
+  "scope": "/alharam-service/",
+  "display": "standalone",
+  "background_color": "#0a0e1a",
+  "theme_color": "#c9960c",
+  "orientation": "portrait-primary",
+  "lang": "ar",
+  "dir": "rtl",
+  "categories": ["business", "utilities"],
+  "screenshots": [],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
