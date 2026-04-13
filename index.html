@@ -2281,90 +2281,21 @@
           </div>
         </div>
 
-        <!-- قسم الحذف -->
+        <!-- كلمة سر الحذف -->
         <div class="card" style="border:1px solid rgba(239,68,68,0.3)">
-          <div class="card-title" style="color:var(--danger)">🗑️ إدارة الحذف</div>
-          <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px">احذف عناصر محددة أو امسح جميع البيانات. تأكد قبل الحذف لأنه لا يمكن التراجع.</p>
-
-          <!-- حذف جهاز محدد -->
-          <div style="margin-bottom:14px">
-            <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:6px">🔧 حذف جهاز صيانة</label>
+          <div class="card-title" style="color:var(--danger)">🔐 كلمة سر الحذف</div>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">حدد كلمة سر تُطلب عند حذف أي بند في التطبيق</p>
+          <div class="form-group">
+            <label>كلمة السر الحالية / الجديدة</label>
             <div style="display:flex;gap:8px">
-              <select id="del-repair-select" style="flex:1;padding:8px 10px;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;color:var(--text-main);font-size:12px;font-family:inherit" onclick="loadDelRepairs()">
-                <option value="">— اختر الجهاز —</option>
-              </select>
-              <button class="btn btn-danger" style="width:auto;padding:8px 14px" onclick="delSelectedRepair()">🗑️ حذف</button>
+              <input type="password" id="set-delete-pass" placeholder="أدخل كلمة السر..." style="flex:1">
+              <button class="btn btn-secondary" onclick="toggleDeletePassVis()" id="del-pass-eye" style="width:40px;font-size:16px;padding:0">👁️</button>
             </div>
           </div>
-
-          <div class="divider" style="border-color:rgba(239,68,68,0.15)"></div>
-
-          <!-- حذف معاملة صندوق -->
-          <div style="margin-bottom:14px">
-            <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:6px">💰 حذف معاملة من الصندوق</label>
-            <div style="display:flex;gap:8px">
-              <select id="del-cash-select" style="flex:1;padding:8px 10px;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;color:var(--text-main);font-size:12px;font-family:inherit" onclick="loadDelCash()">
-                <option value="">— اختر المعاملة —</option>
-              </select>
-              <button class="btn btn-danger" style="width:auto;padding:8px 14px" onclick="delSelectedCash()">🗑️ حذف</button>
-            </div>
+          <button class="btn btn-primary" onclick="saveSettings()">💾 حفظ الإعدادات</button>
+          <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+            <button class="btn btn-danger" onclick="clearAllData()">⚠️ مسح جميع البيانات</button>
           </div>
-
-          <div class="divider" style="border-color:rgba(239,68,68,0.15)"></div>
-
-          <!-- حذف دين -->
-          <div style="margin-bottom:14px">
-            <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:6px">📋 حذف دين</label>
-            <div style="display:flex;gap:8px">
-              <select id="del-debt-select" style="flex:1;padding:8px 10px;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;color:var(--text-main);font-size:12px;font-family:inherit" onclick="loadDelDebts()">
-                <option value="">— اختر الدين —</option>
-              </select>
-              <button class="btn btn-danger" style="width:auto;padding:8px 14px" onclick="delSelectedDebt()">🗑️ حذف</button>
-            </div>
-          </div>
-
-          <div class="divider" style="border-color:rgba(239,68,68,0.15)"></div>
-
-          <!-- حذف عميل -->
-          <div style="margin-bottom:14px">
-            <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:6px">👤 حذف عميل</label>
-            <div style="display:flex;gap:8px">
-              <select id="del-cust-select" style="flex:1;padding:8px 10px;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;color:var(--text-main);font-size:12px;font-family:inherit" onclick="loadDelCustomers()">
-                <option value="">— اختر العميل —</option>
-              </select>
-              <button class="btn btn-danger" style="width:auto;padding:8px 14px" onclick="delSelectedCustomer()">🗑️ حذف</button>
-            </div>
-          </div>
-
-          <div class="divider" style="border-color:rgba(239,68,68,0.15)"></div>
-
-          <!-- حذف موظف -->
-          <div style="margin-bottom:14px">
-            <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:6px">👷 حذف موظف</label>
-            <div style="display:flex;gap:8px">
-              <select id="del-emp-select" style="flex:1;padding:8px 10px;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;color:var(--text-main);font-size:12px;font-family:inherit" onclick="loadDelEmployees()">
-                <option value="">— اختر الموظف —</option>
-              </select>
-              <button class="btn btn-danger" style="width:auto;padding:8px 14px" onclick="delSelectedEmployee()">🗑️ حذف</button>
-            </div>
-          </div>
-
-          <div class="divider" style="border-color:rgba(239,68,68,0.15)"></div>
-
-          <!-- حذف مصروف -->
-          <div style="margin-bottom:14px">
-            <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:6px">💸 حذف مصروف</label>
-            <div style="display:flex;gap:8px">
-              <select id="del-exp-select" style="flex:1;padding:8px 10px;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;color:var(--text-main);font-size:12px;font-family:inherit" onclick="loadDelExpenses()">
-                <option value="">— اختر المصروف —</option>
-              </select>
-              <button class="btn btn-danger" style="width:auto;padding:8px 14px" onclick="delSelectedExpense()">🗑️ حذف</button>
-            </div>
-          </div>
-
-          <div class="divider" style="border-color:rgba(239,68,68,0.15)"></div>
-
-          <button class="btn btn-danger" onclick="clearAllData()">⚠️ مسح جميع البيانات</button>
         </div>
       </div>
     </div>
@@ -2373,6 +2304,28 @@
 </div>
 
 <!-- ==================== MODALS ==================== -->
+
+<!-- Delete Password Modal -->
+<div class="modal-overlay" id="modal-delete-pass">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-header">
+      <div class="modal-title">🔐 تأكيد الحذف</div>
+      <button class="modal-close" onclick="closeModal('modal-delete-pass')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="del-pass-msg" style="font-size:13px;color:var(--text-muted);margin-bottom:16px"></p>
+      <div class="form-group">
+        <label>أدخل كلمة سر الحذف</label>
+        <input type="password" id="del-pass-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')confirmDeleteWithPass()">
+        <div id="del-pass-err" style="color:var(--danger);font-size:12px;margin-top:6px;min-height:16px"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-delete-pass')">إلغاء</button>
+      <button class="btn btn-danger" onclick="confirmDeleteWithPass()">🗑️ حذف</button>
+    </div>
+  </div>
+</div>
 
 <!-- Add Product Modal -->
 <div class="modal-overlay" id="modal-product">
@@ -3276,7 +3229,72 @@ function showLoading(){ document.getElementById('s-loading').style.display='flex
 function showLogin(){ document.getElementById('s-loading').style.display='none'; document.getElementById('s-login').style.display='flex'; }
 function showApp(){ document.getElementById('s-loading').style.display='none'; document.getElementById('s-login').style.display='none'; }
 
-// ==================== SALES MODULE ====================
+// ==================== DELETE PASSWORD SYSTEM ====================
+let _pendingDeleteFn = null;
+let _pendingDeleteMsg = '';
+
+function requireDeletePass(msg, onConfirm) {
+  const savedPass = cache.settings?.deletePassword;
+  if (!savedPass) {
+    // لو ما في كلمة سر محددة → نفذ مباشرة بعد confirm عادي
+    document.getElementById('confirm-message').textContent = msg;
+    document.getElementById('confirm-ok').onclick = () => { closeModal('modal-confirm'); onConfirm(); };
+    openModal('modal-confirm');
+    return;
+  }
+  // في كلمة سر → اعرض modal
+  _pendingDeleteFn  = onConfirm;
+  _pendingDeleteMsg = msg;
+  document.getElementById('del-pass-msg').textContent = msg;
+  document.getElementById('del-pass-input').value = '';
+  document.getElementById('del-pass-err').textContent = '';
+  openModal('modal-delete-pass');
+}
+
+window.confirmDeleteWithPass = function() {
+  const entered = document.getElementById('del-pass-input').value;
+  const saved   = cache.settings?.deletePassword || '';
+  if (entered !== saved) {
+    document.getElementById('del-pass-err').textContent = '❌ كلمة السر غلط';
+    document.getElementById('del-pass-input').focus();
+    return;
+  }
+  closeModal('modal-delete-pass');
+  if (_pendingDeleteFn) { _pendingDeleteFn(); _pendingDeleteFn = null; }
+};
+
+window.toggleDeletePassVis = function() {
+  const inp = document.getElementById('set-delete-pass');
+  const btn = document.getElementById('del-pass-eye');
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+  else                         { inp.type = 'password'; btn.textContent = '👁️'; }
+};
+
+// ── Wrappers للحذف بكلمة السر ─────────────────────────
+window.askDeleteRepair = function(id) {
+  const r = DB.get(K_REPAIRS).find(x=>x.id===id);
+  requireDeletePass(`حذف جهاز "${r?.customer||''} — ${r?.deviceType||''}"؟`, () => deleteRepair(id));
+};
+window.askDeleteCash = function(id) {
+  const c = DB.get(K_CASH).find(x=>x.id===id);
+  requireDeletePass(`حذف معاملة "${c?.desc||''}" — ${formatNum(c?.amount||0)} ل؟`, () => deleteCash(id));
+};
+window.askDeleteDebt = function(id) {
+  const d = DB.get(K_DEBTS).find(x=>x.id===id);
+  requireDeletePass(`حذف دين "${d?.name||''}"؟`, () => deleteDebt(id));
+};
+window.askDeleteCustomer = function(id) {
+  const c = DB.get(K_CUSTOMERS).find(x=>x.id===id);
+  requireDeletePass(`حذف العميل "${c?.name||''}"؟`, () => deleteCustomer(id));
+};
+window.askDeleteEmployee = function(id) {
+  const e = DB.get(K_EMPLOYEES).find(x=>x.id===id);
+  requireDeletePass(`حذف الموظف "${e?.name||''}" وكل سحوباته؟`, () => deleteEmployee(id));
+};
+window.askDeleteExpense = function(id) {
+  const e = DB.get(K_EXPENSES).find(x=>x.id===id);
+  requireDeletePass(`حذف مصروف "${e?.desc||''}" — ${formatNum(e?.amount||0)} ل؟`, () => deleteExpense(id));
+};
 
 // -- اختيار الوحدة --
 let _selectedModules = { repair: false, sales: false };
@@ -5022,7 +5040,7 @@ function renderDevices() {
         <div style="display:flex;gap:4px">
           <button class="btn btn-sm btn-secondary" onclick="editRepair('${r.id}')" title="تعديل">✏️ تعديل</button>
           <button class="btn btn-sm btn-success" onclick="showInvoice('${r.id}')" title="فاتورة">🖨️</button>
-
+          <button class="btn btn-sm btn-danger" onclick="askDeleteRepair('${r.id}')" title="حذف">🗑️</button>
         </div>
       </td>
     </tr>
@@ -5443,7 +5461,7 @@ function renderCash() {
       <td>${c.desc}</td>
       <td>${c.person ? `<span class="badge badge-info">👤 ${c.person}</span>` : '-'}</td>
       <td>${amountCell}</td>
-      <td></td>
+      <td><button onclick="askDeleteCash('${c.id}')" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:6px;padding:3px 8px;cursor:pointer;color:var(--danger);font-size:11px;font-family:inherit">🗑️</button></td>
     </tr>`;
   }).join('');
 }
@@ -5688,7 +5706,7 @@ function renderEmployees() {
           </div>
           <button class="btn btn-sm btn-primary" onclick="event.stopPropagation();openEmpWithdraw('${emp.id}')">💸 سحب</button>
           <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();editEmployee('${emp.id}')">✏️</button>
-
+          <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();askDeleteEmployee('${emp.id}')">🗑️</button>
           <span style="color:var(--text-muted);font-size:18px">${isOpen ? '▲' : '▼'}</span>
         </div>
       </div>
@@ -6008,7 +6026,7 @@ function renderExpenses() {
         <td style="color:var(--danger)"><strong>− ${formatNum(e.amount)} ل</strong></td>
         <td style="display:flex;gap:4px">
           <button class="btn btn-sm btn-secondary" onclick="editExpense('${e.id}')">✏️</button>
-
+          <button class="btn btn-sm btn-danger" onclick="askDeleteExpense('${e.id}')">🗑️</button>
         </td>
       </tr>`;
     }).join('');
@@ -6245,7 +6263,7 @@ function renderDebts() {
               ${!settled ? `<button class="btn btn-sm btn-success" onclick="openPayDebt('${d.id}')">💳 تسديد</button>` : ''}
               <button class="btn btn-sm btn-info" onclick="showDebtHistory('${d.id}')">📋</button>
               <button class="btn btn-sm btn-secondary" onclick="editDebt('${d.id}')">✏️</button>
-
+              <button class="btn btn-sm btn-danger" onclick="askDeleteDebt('${d.id}')">🗑️</button>
             </div>
           </td>
         </tr>
@@ -6441,6 +6459,7 @@ function renderCustomers() {
           <div style="display:flex;gap:4px">
             ${ops.length > 0 ? `<button class="btn btn-sm btn-primary" onclick="showCustomerHistory('${c.name.replace(/'/g,"\\'")}')">📋 السجل</button>` : ''}
             <button class="btn btn-sm btn-secondary" onclick="editCustomer('${c.id}')">✏️</button>
+            <button class="btn btn-sm btn-danger" onclick="askDeleteCustomer('${c.id}')">🗑️</button>
 
           </div>
         </td>
@@ -7255,6 +7274,8 @@ function loadSettings() {
   document.getElementById('set-shop-phone').value   = s.shopPhone   || '';
   document.getElementById('set-shop-address').value = s.shopAddress || '';
   document.getElementById('set-invoice-note').value = s.invoiceNote || '';
+  const delPassEl = document.getElementById('set-delete-pass');
+  if (delPassEl) delPassEl.value = s.deletePassword || '';
   // highlight active theme
   const saved = localStorage.getItem('app-theme') || 'dark-blue';
   document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
@@ -7292,10 +7313,12 @@ window.saveModuleSettings = async function() {
 
 function saveSettings() {
   const settings = {
-    shopName: document.getElementById('set-shop-name').value,
-    shopPhone: document.getElementById('set-shop-phone').value,
-    shopAddress: document.getElementById('set-shop-address').value,
-    invoiceNote: document.getElementById('set-invoice-note').value,
+    ...cache.settings, // حافظ على modules والإعدادات الأخرى
+    shopName:       document.getElementById('set-shop-name').value,
+    shopPhone:      document.getElementById('set-shop-phone').value,
+    shopAddress:    document.getElementById('set-shop-address').value,
+    invoiceNote:    document.getElementById('set-invoice-note').value,
+    deletePassword: document.getElementById('set-delete-pass')?.value || '',
   };
   DB.setObj(K_SETTINGS, settings);
   document.getElementById('shop-name-sidebar').textContent = settings.shopName || 'محل الصيانة';
@@ -7450,20 +7473,16 @@ function delSelectedExpense() {
 
 // ==================== CLEAR ALL DATA ====================
 function clearAllData() {
-  document.getElementById('confirm-message').textContent = '⚠️ هذا الإجراء سيمسح جميع البيانات (الصيانات، الصندوق، الديون، المصاريف، العملاء، الأعطال، السحوبات) نهائياً. سيتم الإبقاء على بيانات الموظفين. لا يمكن التراجع. هل أنت متأكد؟';
-  document.getElementById('confirm-ok').textContent = '🗑️ نعم، امسح الكل';
-  document.getElementById('confirm-ok').onclick = async () => {
+  requireDeletePass('⚠️ مسح جميع البيانات (الصيانات، الصندوق، الديون، المصاريف، العملاء، الأعطال، السحوبات) نهائياً — لا يمكن التراجع!', async () => {
     const uid = auth.currentUser?.uid; if (!uid) return;
     const toDelete = [K_REPAIRS, K_CASH, K_DEBTS, K_CUSTOMERS, K_EXPENSES, K_EXP_CATS, K_FAULTS, K_WITHDRAWALS, K_DEBT_PAYMENTS];
     for (const k of toDelete) {
       for (const item of (cache[k] || [])) await deleteDoc(doc(fdb,'users',uid,k,item.id)).catch(() => {});
       cache[k] = [];
     }
-    closeModal('modal-confirm');
     renderDashboard();
     toast('✅ تم مسح جميع البيانات (الموظفون محفوظون)', 'info');
-  };
-  openModal('modal-confirm');
+  });
 }
 
 // ── Init ─────────────────────────────────────────────────
@@ -7492,14 +7511,40 @@ window.addEventListener('DOMContentLoaded', ()=>{
     if(user){ 
       showApp();
       await migrateRootDataToUser(user.uid);
+
+      // سجّل/حدّث المستخدم في users_registry عند كل دخول
+      // هكذا الحسابات القديمة تظهر تلقائياً عند أول دخول بعد التحديث
+      try {
+        const regRef = doc(fdb, 'users_registry', user.uid);
+        const regSnap = await getDoc(regRef);
+        if (!regSnap.exists()) {
+          // حساب قديم — سجّله الآن
+          await setDoc(regRef, {
+            uid:       user.uid,
+            email:     user.email || '',
+            shopName:  '', // سيُحدَّث من settings لاحقاً
+            createdAt: user.metadata?.creationTime || new Date().toISOString(),
+            active:    true
+          });
+        }
+        // حدّث shopName من settings إذا متاح
+        setTimeout(async () => {
+          const shopName = cache.settings?.shopName;
+          if (shopName) {
+            await setDoc(regRef, {
+              uid: user.uid, email: user.email||'',
+              shopName, createdAt: regSnap.exists() ? regSnap.data().createdAt : (user.metadata?.creationTime||new Date().toISOString()),
+              active: true
+            });
+          }
+        }, 2000);
+      } catch(e) { console.warn('registry update:', e.message); }
+
       const cm = currentMonth();
       ['dash-month-filter','cash-month-filter','emp-month-filter','report-month-custom','exp-month-filter'].forEach(id => {
         const el = document.getElementById(id); if (el) el.value = cm;
       });
       startListeners();
-      // شاشة الاختيار تظهر فقط إذا لم يسبق للمستخدم اختيار وحدة
-      // settings listener سيتولى تطبيق الوحدات فور وصول البيانات
-      // لو بعد 3 ثوانٍ ما في settings → أول دخول
       setTimeout(() => {
         if (!cache.settings?.modules) {
           document.getElementById('s-module').style.display = 'flex';
@@ -7522,6 +7567,8 @@ Object.assign(window,{
   showCustomerHistory, switchCustTab, copyCustomerReport, showDebtHistory, toggleWorkList, renderInventory, printInventory,
   openAddCustomer, editCustomer, saveCustomer, deleteCustomer,
   loadSettings, saveSettings, exportBackup, importBackup, clearAllData, applyTheme,
+  toggleDeletePassVis, confirmDeleteWithPass,
+  askDeleteRepair, askDeleteCash, askDeleteDebt, askDeleteCustomer, askDeleteEmployee, askDeleteExpense,
   generateActivationCodes, loadActivationCodes, copyCode, deleteCode,
   loadRegisteredUsers, adminResetPassword, adminDeleteUser,
   loadDelRepairs, loadDelCash, loadDelDebts, loadDelCustomers, loadDelEmployees, loadDelExpenses,
