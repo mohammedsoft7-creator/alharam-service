@@ -188,17 +188,45 @@
   }
 
   #header {
-    height: var(--header-h);
     background: var(--bg-card);
     border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 28px;
     position: sticky;
     top: 0;
     z-index: 50;
-    will-change: auto;
+  }
+
+  .ticker-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 18px;
+    font-size: 11px;
+    font-weight: 600;
+    border-right: 1px solid var(--border);
+    height: 28px;
+  }
+
+  .ticker-item .t-name {
+    color: var(--text-muted);
+    font-size: 10px;
+  }
+  .ticker-item .t-price {
+    color: var(--text-main);
+    font-weight: 700;
+  }
+  .ticker-item .t-up   { color: var(--success); font-size: 10px; }
+  .ticker-item .t-down { color: var(--danger);  font-size: 10px; }
+
+  .ticker-loading {
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 0 16px;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity:1; }
+    50%      { opacity:0.4; }
   }
 
   .header-title {
@@ -1162,6 +1190,95 @@
     color: #888;
   }
 
+  /* ══ PRICE TICKER ══ */
+  #header-row1 {
+    display: flex;
+    align-items: center;
+    height: var(--header-h);
+    padding: 0 28px;
+    gap: 12px;
+  }
+  .header-title { flex-shrink: 0; }
+  .header-meta  { flex-shrink: 0; margin-right: auto; }
+
+  #price-ticker-bar {
+    flex: 1;
+    min-width: 0;
+    height: 28px;
+    overflow: hidden;
+    position: relative;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+  }
+  #price-ticker-bar::before,
+  #price-ticker-bar::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 32px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  #price-ticker-bar::before { right: 48px; background: linear-gradient(to left, var(--bg-card2), transparent); }
+  #price-ticker-bar::after  { left: 0;     background: linear-gradient(to right, var(--bg-card2), transparent); }
+
+  #ticker-label {
+    position: absolute;
+    left: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--accent);
+    background: var(--bg-card2);
+    border-right: 1px solid var(--border);
+    z-index: 3;
+    white-space: nowrap;
+  }
+
+  #ticker-track {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    padding-left: 52px;
+    animation: tickerScroll 40s linear infinite;
+  }
+  #ticker-track:hover { animation-play-state: paused; cursor: default; }
+
+  @keyframes tickerScroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .ticker-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 16px;
+    font-size: 11px;
+    font-weight: 700;
+    border-right: 1px solid var(--border);
+    height: 28px;
+  }
+  .ticker-item .t-icon { font-size: 13px; }
+  .ticker-item .t-name { color: var(--text-muted); font-size: 10px; font-weight: 600; }
+  .ticker-item .t-price { color: var(--text-main); }
+  .ticker-item .t-up   { color: #22c55e; font-size: 10px; }
+  .ticker-item .t-down { color: #ef4444; font-size: 10px; }
+  .ticker-item .t-neutral { color: var(--text-muted); font-size: 10px; }
+  .ticker-loading { font-size: 11px; color: var(--text-muted); padding: 0 16px; }
+
+  @media (max-width: 768px) {
+    #price-ticker-bar { display: none; }
+    #header-row1 { padding: 0 10px; gap: 6px; }
+  }
+
   /* ══ NO ANIMATIONS ON MOBILE for performance ══ */
   @media (max-width: 640px) {
     .stat-card { animation: none !important; }
@@ -1362,10 +1479,20 @@
 <!-- MAIN -->
 <div id="main">
   <div id="header">
-    <div class="header-title" id="page-title">لوحة التحكم</div>
-    <div class="header-meta">
-      <div class="header-date" id="current-date"></div>
-      <div style="position:relative;cursor:pointer" onclick="showPage('debts')" title="الديون المستحقة">
+    <div id="header-row1">
+      <div class="header-title" id="page-title">لوحة التحكم</div>
+
+      <!-- ══ شريط الأسعار ══ -->
+      <div id="price-ticker-bar">
+        <div id="ticker-label">📈 LIVE</div>
+        <div id="ticker-track">
+          <span class="ticker-loading">⏳ جاري تحميل الأسعار...</span>
+        </div>
+      </div>
+
+      <div class="header-meta">
+        <div class="header-date" id="current-date"></div>
+        <div style="position:relative;cursor:pointer" onclick="showPage('debts')" title="الديون المستحقة">
         <div style="font-size:22px;line-height:1">🔔</div>
         <div id="notif-badge" style="display:none;position:absolute;top:-4px;left:-4px;background:#ef4444;color:#fff;font-size:10px;font-weight:900;border-radius:50%;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;padding:0 3px;box-shadow:0 2px 6px rgba(239,68,68,0.5)">0</div>
       </div>
@@ -1890,16 +2017,16 @@
           <div class="stat-icon">👷</div>
         </div>
         <div class="stat-card red">
-          <div class="stat-label">إجمالي السحوبات</div>
-          <div class="stat-value" id="emp-total-withdrawn">0</div>
-          <div class="stat-sub">ليرة</div>
+          <div class="stat-label">سحوبات الشهر ليرة</div>
+          <div class="stat-value" id="emp-month-withdrawn">0</div>
+          <div class="stat-sub">🇸🇾 ليرة تركية</div>
           <div class="stat-icon">💸</div>
         </div>
         <div class="stat-card orange">
-          <div class="stat-label">سحوبات هذا الشهر</div>
-          <div class="stat-value" id="emp-month-withdrawn">0</div>
-          <div class="stat-sub">ليرة</div>
-          <div class="stat-icon">📅</div>
+          <div class="stat-label">سحوبات الشهر دولار</div>
+          <div class="stat-value" id="emp-month-withdrawn-usd">0</div>
+          <div class="stat-sub">💵 دولار</div>
+          <div class="stat-icon">💰</div>
         </div>
       </div>
 
@@ -3120,7 +3247,14 @@
     <div class="modal-body">
       <input type="hidden" id="ew-id">
       <div class="form-group">
-        <label>المبلغ (ليرة) *</label>
+        <label>العملة</label>
+        <div class="radio-group">
+          <label class="radio-option"><input type="radio" name="ew-currency" value="ليرة" checked onchange="toggleEditWithdrawCurrency()"> 🇹🇷 ليرة تركية</label>
+          <label class="radio-option"><input type="radio" name="ew-currency" value="دولار" onchange="toggleEditWithdrawCurrency()"> 💵 دولار</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label id="ew-amount-label">المبلغ (ليرة تركية) *</label>
         <input type="number" id="ew-amount" placeholder="0" min="0">
       </div>
       <div class="form-group">
@@ -3156,7 +3290,18 @@
     <div class="modal-body">
       <input type="hidden" id="emp-withdraw-id">
       <div class="form-group">
-        <label>المبلغ (ليرة) *</label>
+        <label>العملة</label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="emp-currency" value="ليرة" checked onchange="toggleWithdrawCurrency()"> 🇹🇷 ليرة تركية
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="emp-currency" value="دولار" onchange="toggleWithdrawCurrency()"> 💵 دولار
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label id="emp-withdraw-amount-label">المبلغ (ليرة تركية) *</label>
         <input type="number" id="emp-withdraw-amount" placeholder="0" min="0">
       </div>
       <div class="form-group">
@@ -3330,7 +3475,137 @@ function refreshCurrentPage(){
 // ── Auth ─────────────────────────────────────────────────
 function showLoading(){ document.getElementById('s-loading').style.display='flex'; document.getElementById('s-login').style.display='none'; }
 function showLogin(){ document.getElementById('s-loading').style.display='none'; document.getElementById('s-login').style.display='flex'; }
-function showApp(){ document.getElementById('s-loading').style.display='none'; document.getElementById('s-login').style.display='none'; }
+function showApp(){ document.getElementById('s-loading').style.display='none'; document.getElementById('s-login').style.display='none'; startPriceTicker(); }
+
+/* ══ LIVE PRICE TICKER ══ */
+let _tickerTimer = null;
+let _lastPrices = null;
+
+async function startPriceTicker() {
+  // أظهر بيانات static أولاً ريثما تحمّل
+  renderStaticTicker();
+  await fetchPrices();
+  clearInterval(_tickerTimer);
+  _tickerTimer = setInterval(fetchPrices, 90000);
+}
+
+function renderStaticTicker() {
+  const track = document.getElementById('ticker-track');
+  if (!track) return;
+  track.innerHTML = [
+    `<span class="ticker-item"><span class="t-icon">₿</span><span class="t-name">BTC</span><span class="t-price" id="tk-btc">جاري التحميل...</span></span>`,
+    `<span class="ticker-item"><span class="t-icon">Ξ</span><span class="t-name">ETH</span><span class="t-price" id="tk-eth">...</span></span>`,
+    `<span class="ticker-item"><span class="t-icon">🥇</span><span class="t-name">GOLD</span><span class="t-price" id="tk-gold">...</span></span>`,
+    `<span class="ticker-item"><span class="t-icon">💱</span><span class="t-name">EUR/USD</span><span class="t-price" id="tk-eur">...</span></span>`,
+  ].join('') + [
+    `<span class="ticker-item"><span class="t-icon">₿</span><span class="t-name">BTC</span><span class="t-price">•</span></span>`,
+    `<span class="ticker-item"><span class="t-icon">Ξ</span><span class="t-name">ETH</span><span class="t-price">•</span></span>`,
+    `<span class="ticker-item"><span class="t-icon">🥇</span><span class="t-name">GOLD</span><span class="t-price">•</span></span>`,
+    `<span class="ticker-item"><span class="t-icon">💱</span><span class="t-name">EUR/USD</span><span class="t-price">•</span></span>`,
+  ].join('');
+}
+
+async function fetchPrices() {
+  const prices = {};
+
+  // ── 1. Bitcoin + Ethereum (CoinGecko - مجاني بدون مفتاح) ──
+  try {
+    const r = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true',
+      { cache: 'no-store', signal: AbortSignal.timeout(8000) }
+    );
+    if (r.ok) {
+      const d = await r.json();
+      if (d.bitcoin)  prices.btc = { price: d.bitcoin.usd,  change: d.bitcoin.usd_24h_change };
+      if (d.ethereum) prices.eth = { price: d.ethereum.usd, change: d.ethereum.usd_24h_change };
+    }
+  } catch(_) {}
+
+  // ── 2. EUR/USD (Frankfurter - مجاني بدون مفتاح) ──
+  try {
+    const r = await fetch(
+      'https://api.frankfurter.app/latest?from=USD&to=EUR',
+      { cache: 'no-store', signal: AbortSignal.timeout(8000) }
+    );
+    if (r.ok) {
+      const d = await r.json();
+      if (d.rates?.EUR) prices.eur = { price: d.rates.EUR };
+    }
+  } catch(_) {}
+
+  // ── 3. ذهب (metals.live - مجاني) ──
+  try {
+    const r = await fetch(
+      'https://api.metals.live/v1/spot/gold',
+      { cache: 'no-store', signal: AbortSignal.timeout(8000) }
+    );
+    if (r.ok) {
+      const d = await r.json();
+      const spot = Array.isArray(d) ? d[0]?.price : d?.price;
+      if (spot) prices.gold = { price: spot };
+    }
+  } catch(_) {}
+
+  // ── 4. fallback للذهب عبر XAU/USD ──
+  if (!prices.gold) {
+    try {
+      const r = await fetch(
+        'https://open.er-api.com/v6/latest/XAU',
+        { cache: 'no-store', signal: AbortSignal.timeout(8000) }
+      );
+      if (r.ok) {
+        const d = await r.json();
+        if (d.rates?.USD) prices.gold = { price: d.rates.USD };
+      }
+    } catch(_) {}
+  }
+
+  // احفظ آخر قيم ناجحة
+  if (Object.keys(prices).length > 0) {
+    _lastPrices = { ..._lastPrices, ...prices };
+  }
+
+  renderTicker(_lastPrices || prices);
+}
+
+function renderTicker(prices) {
+  const track = document.getElementById('ticker-track');
+  if (!track) return;
+  if (!prices || Object.keys(prices).length === 0) {
+    track.innerHTML = '<span class="ticker-loading">📡 لا يوجد اتصال بالإنترنت</span>';
+    return;
+  }
+
+  const fmt = (n, dec=0) => (+n).toLocaleString('en-US', {minimumFractionDigits:dec, maximumFractionDigits:dec});
+  const chg = (c) => {
+    if (c == null) return '';
+    return c > 0
+      ? `<span class="t-up">▲${Math.abs(c).toFixed(1)}%</span>`
+      : c < 0
+      ? `<span class="t-down">▼${Math.abs(c).toFixed(1)}%</span>`
+      : '';
+  };
+
+  const items = [];
+  if (prices.btc)  items.push(`<span class="ticker-item">₿ <span class="t-name">BTC</span> <span class="t-price">$${fmt(prices.btc.price)}</span> ${chg(prices.btc.change)}</span>`);
+  if (prices.eth)  items.push(`<span class="ticker-item">Ξ <span class="t-name">ETH</span> <span class="t-price">$${fmt(prices.eth.price)}</span> ${chg(prices.eth.change)}</span>`);
+  if (prices.gold) items.push(`<span class="ticker-item">🥇 <span class="t-name">GOLD</span> <span class="t-price">$${fmt(prices.gold.price)}</span></span>`);
+  if (prices.eur)  items.push(`<span class="ticker-item">💱 <span class="t-name">EUR/USD</span> <span class="t-price">${(+prices.eur.price).toFixed(4)}</span></span>`);
+
+  if (items.length === 0) {
+    track.innerHTML = '<span class="ticker-loading">جاري المحاولة...</span>';
+    return;
+  }
+
+  // مضاعفة لحركة لا نهائية
+  const html = items.join('') + items.join('');
+  track.innerHTML = html;
+  track.style.animation = 'none';
+  void track.offsetWidth;
+  track.style.animation = '';
+}
+
+
 
 // ==================== DELETE PASSWORD SYSTEM ====================
 let _pendingDeleteFn = null;
@@ -4928,27 +5203,27 @@ function renderEmployees() {
   const employees = DB.get(K_EMPLOYEES).sort((a,b) => (a.name||'').localeCompare(b.name||''));
   const allW      = DB.get(K_WITHDRAWALS);
 
-  // الشهر المختار (افتراضي: الشهر الحالي)
   const empMonthEl = document.getElementById('emp-month-filter');
-  const monthStr = empMonthEl?.value || currentMonth();
+  const monthStr   = empMonthEl?.value || currentMonth();
 
-  const filteredW  = allW.filter(w => w.date?.startsWith(monthStr));
-  const totalAll   = filteredW.reduce((s,w) => s + +w.amount, 0);
+  const filteredW     = allW.filter(w => w.date?.startsWith(monthStr));
+  const monthTotalTRY = filteredW.filter(w => (w.currency||'ليرة') !== 'دولار').reduce((s,w) => s + +w.amount, 0);
+  const monthTotalUSD = filteredW.filter(w => w.currency === 'دولار').reduce((s,w) => s + +w.amount, 0);
 
-  // عرض اسم الشهر بالعربي
   const [y, m] = monthStr.split('-');
   const monthNames = ['','يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
   const monthLabel = `${monthNames[+m]} ${y}`;
 
-  document.getElementById('emp-count').textContent           = employees.length;
-  document.getElementById('emp-total-withdrawn').textContent = formatNum(totalAll);
-  document.getElementById('emp-month-withdrawn').textContent = formatNum(totalAll);
+  document.getElementById('emp-count').textContent = employees.length;
+  document.getElementById('emp-month-withdrawn').textContent     = formatNum(monthTotalTRY);
+  const usdEl = document.getElementById('emp-month-withdrawn-usd');
+  if (usdEl) usdEl.textContent = monthTotalUSD.toFixed(2);
 
-  // حدّث label البطاقة
-  const monthCard = document.querySelector('#emp-month-withdrawn')?.closest('.stat-card')?.querySelector('.stat-label');
-  if (monthCard) monthCard.textContent = `سحوبات ${monthLabel}`;
-  const totalCard = document.querySelector('#emp-total-withdrawn')?.closest('.stat-card')?.querySelector('.stat-label');
-  if (totalCard) totalCard.textContent = `إجمالي ${monthLabel}`;
+  // حدّث label الشهر
+  const tryCard = document.querySelector('#emp-month-withdrawn')?.closest('.stat-card')?.querySelector('.stat-label');
+  if (tryCard) tryCard.textContent = `سحوبات ${monthLabel} ليرة`;
+  const usdCard = document.querySelector('#emp-month-withdrawn-usd')?.closest('.stat-card')?.querySelector('.stat-label');
+  if (usdCard) usdCard.textContent = `سحوبات ${monthLabel} دولار`;
 
   const el = document.getElementById('employees-list');
   if (employees.length === 0) {
@@ -4957,16 +5232,23 @@ function renderEmployees() {
   }
 
   el.innerHTML = employees.map(emp => {
-    const withdrawals = allW.filter(w => w.empId === emp.id && w.date?.startsWith(monthStr)).sort((a,b) => {
-      const ta = a.createdAt || a.date || '';
-      const tb = b.createdAt || b.date || '';
-      return tb.localeCompare(ta);
-    });
-    const monthTotal = withdrawals.reduce((s,w) => s + +w.amount, 0);
-    const isOpen     = emp._open;
+    const withdrawals = allW.filter(w => w.empId === emp.id && w.date?.startsWith(monthStr))
+      .sort((a,b) => (b.createdAt||b.date||'').localeCompare(a.createdAt||a.date||''));
+
+    // رصيد الشهر منفصل لكل عملة
+    const empTRY = withdrawals.filter(w => (w.currency||'ليرة') !== 'دولار').reduce((s,w) => s + +w.amount, 0);
+    const empUSD = withdrawals.filter(w => w.currency === 'دولار').reduce((s,w) => s + +w.amount, 0);
+
+    // إجمالي كل الأوقات
+    const allEmpW   = allW.filter(w => w.empId === emp.id);
+    const totalTRY  = allEmpW.filter(w => (w.currency||'ليرة') !== 'دولار').reduce((s,w) => s + +w.amount, 0);
+    const totalUSD  = allEmpW.filter(w => w.currency === 'دولار').reduce((s,w) => s + +w.amount, 0);
+
+    const isOpen = emp._open;
 
     return `
     <div class="card" style="margin-bottom:16px">
+      <!-- رأس البطاقة -->
       <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleEmployeeCard('${emp.id}')">
         <div style="display:flex;align-items:center;gap:12px">
           <div style="width:42px;height:42px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">👷</div>
@@ -4976,9 +5258,16 @@ function renderEmployees() {
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:10px">
-          <div style="text-align:center">
-            <div style="font-size:11px;color:var(--text-muted)">${monthLabel}</div>
-            <div style="font-size:14px;font-weight:700;color:var(--warning)">${formatNum(monthTotal)} ل</div>
+          <!-- رصيدا الشهر -->
+          <div style="display:flex;gap:8px">
+            <div style="text-align:center;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:4px 10px;min-width:70px">
+              <div style="font-size:9px;color:var(--text-muted)">🇸🇾 ${monthLabel}</div>
+              <div style="font-size:13px;font-weight:800;color:var(--danger)">${formatNum(empTRY)}</div>
+            </div>
+            <div style="text-align:center;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);border-radius:8px;padding:4px 10px;min-width:60px">
+              <div style="font-size:9px;color:var(--text-muted)">💵 ${monthLabel}</div>
+              <div style="font-size:13px;font-weight:800;color:#22c55e">${empUSD > 0 ? empUSD.toFixed(2) : '0'} $</div>
+            </div>
           </div>
           <button class="btn btn-sm btn-primary" onclick="event.stopPropagation();openEmpWithdraw('${emp.id}')">💸 سحب</button>
           <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();editEmployee('${emp.id}')">✏️</button>
@@ -4989,22 +5278,41 @@ function renderEmployees() {
 
       ${isOpen ? `
       <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px">
+
+        <!-- إجماليات الموظف الكلية -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+          <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px">📊 إجمالي كل الأوقات ليرة</div>
+            <div style="font-size:16px;font-weight:900;color:var(--danger)">${formatNum(totalTRY)} <span style="font-size:11px">ل</span></div>
+          </div>
+          <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:3px">📊 إجمالي كل الأوقات دولار</div>
+            <div style="font-size:16px;font-weight:900;color:#22c55e">${totalUSD > 0 ? totalUSD.toFixed(2) : '0'} <span style="font-size:11px">$</span></div>
+          </div>
+        </div>
+
+        <!-- قائمة السحوبات -->
         ${withdrawals.length === 0
-          ? `<div style="text-align:center;color:var(--text-muted);padding:12px">لا توجد سحوبات مسجلة</div>`
+          ? `<div style="text-align:center;color:var(--text-muted);padding:12px">لا توجد سحوبات في ${monthLabel}</div>`
           : `<div style="display:flex;flex-direction:column;gap:6px">
-              ${withdrawals.map(w => `
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-card2);border-radius:8px;border-right:3px solid var(--danger)">
+              ${withdrawals.map(w => {
+                const isUsd = w.currency === 'دولار';
+                const amtTxt = isUsd ? `${(+w.amount).toFixed(2)} $` : `${formatNum(w.amount)} ل`;
+                const color  = isUsd ? '#22c55e' : 'var(--danger)';
+                const methLabel = isUsd ? '💵 دولار' : w.method === 'بنك' ? '🏦 بنك' : '💵 كاش';
+                return `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-card2);border-radius:8px;border-right:3px solid ${color}">
                   <div>
                     <div style="font-size:13px;font-weight:600">${w.note || 'سحب'}</div>
-                    <div style="font-size:11px;color:var(--text-muted)">${w.createdAt ? formatDateTime(w.createdAt) : formatDate(w.date)} — ${w.method === 'بنك' ? '🏦 بنك' : '💵 كاش'}</div>
+                    <div style="font-size:11px;color:var(--text-muted)">${w.createdAt ? formatDateTime(w.createdAt) : formatDate(w.date)} — ${methLabel}</div>
                   </div>
                   <div style="display:flex;align-items:center;gap:8px">
-                    <strong style="color:var(--danger)">− ${formatNum(w.amount)} ل</strong>
+                    <strong style="color:${color}">− ${amtTxt}</strong>
                     <button class="btn btn-sm btn-secondary" onclick="editEmpWithdrawal('${w.id}')">✏️</button>
                     <button class="btn btn-sm btn-danger" onclick="deleteEmpWithdrawal('${w.id}')">🗑️</button>
                   </div>
-                </div>
-              `).join('')}
+                </div>`;
+              }).join('')}
             </div>`
         }
       </div>` : ''}
@@ -5160,8 +5468,23 @@ function openEmpWithdraw(id) {
   document.getElementById('emp-withdraw-date').value   = today();
   document.getElementById('emp-withdraw-note').value   = '';
   document.querySelectorAll('input[name="emp-pay-method"]')[0].checked = true;
+  // reset currency to ليرة
+  const liraRadio = document.querySelector('input[name="emp-currency"][value="ليرة"]');
+  if (liraRadio) { liraRadio.checked = true; toggleWithdrawCurrency(); }
   openModal('modal-emp-withdraw');
 }
+
+window.toggleWithdrawCurrency = function() {
+  const cur = document.querySelector('input[name="emp-currency"]:checked')?.value || 'ليرة';
+  const lbl = document.getElementById('emp-withdraw-amount-label');
+  if (lbl) lbl.textContent = cur === 'دولار' ? 'المبلغ (دولار) *' : 'المبلغ (ليرة تركية) *';
+};
+
+window.toggleEditWithdrawCurrency = function() {
+  const cur = document.querySelector('input[name="ew-currency"]:checked')?.value || 'ليرة';
+  const lbl = document.getElementById('ew-amount-label');
+  if (lbl) lbl.textContent = cur === 'دولار' ? 'المبلغ (دولار) *' : 'المبلغ (ليرة تركية) *';
+};
 
 function saveEmpWithdraw() {
   const btn = document.querySelector('#modal-emp-withdraw .btn-danger');
@@ -5179,18 +5502,24 @@ function saveEmpWithdraw() {
   const method = document.querySelector('input[name="emp-pay-method"]:checked').value;
   const date   = document.getElementById('emp-withdraw-date').value || today();
   const note   = document.getElementById('emp-withdraw-note').value.trim();
+  const currency = document.querySelector('input[name="emp-currency"]:checked')?.value || 'ليرة';
 
   if (!employees[idx].withdrawals) employees[idx].withdrawals = [];
   const cashId = uid();
   const ts = nowTimestamp();
-  const w = { id: uid(), empId: id, empName: employees[idx].name, amount, method, date, note, cashId, createdAt: ts };
+  const w = { id: uid(), empId: id, empName: employees[idx].name, amount, method, date, note, cashId, currency, createdAt: ts };
   const withdrawals = DB.get(K_WITHDRAWALS);
   withdrawals.push(w);
   DB.set(K_WITHDRAWALS, withdrawals);
 
-  const cashType = method === 'بنك' ? 'bank_out' : 'out';
+  const currLabel = currency === 'دولار' ? '💵' : '🇸🇾';
+  const cashType = currency === 'دولار' ? 'usd_out'
+                 : method === 'بنك'     ? 'bank_out' : 'out';
+  const cashEntry = currency === 'دولار'
+    ? { id: cashId, type: 'usd_out', desc: `سحب موظف: ${employees[idx].name}${note ? ' — ' + note : ''} ${currLabel}`, amount: 0, usdAmount: amount, person: employees[idx].name, date: date || today(), createdAt: ts }
+    : { id: cashId, type: cashType,  desc: `سحب موظف: ${employees[idx].name}${note ? ' — ' + note : ''} ${currLabel}`, amount, person: employees[idx].name, date: date || today(), createdAt: ts };
   const cash = DB.get(K_CASH);
-  cash.push({ id: cashId, type: cashType, desc: `سحب موظف: ${employees[idx].name}${note ? ' — ' + note : ''}`, amount, person: employees[idx].name, date: date || today(), createdAt: ts });
+  cash.push(cashEntry);
   DB.set(K_CASH, cash);
 
   closeModal('modal-emp-withdraw');
@@ -5209,6 +5538,10 @@ window.editEmpWithdrawal = function(wid) {
   document.querySelectorAll('input[name="ew-pay-method"]').forEach(r => {
     r.checked = r.value === (w.method || 'كاش');
   });
+  // load currency
+  const ewCur = w.currency || 'ليرة';
+  document.querySelectorAll('input[name="ew-currency"]').forEach(r => { r.checked = r.value === ewCur; });
+  toggleEditWithdrawCurrency();
   openModal('modal-edit-withdraw');
 };
 
@@ -5216,16 +5549,17 @@ window.saveEditWithdrawal = function() {
   const wid    = document.getElementById('ew-id').value;
   const amount = parseFloat(document.getElementById('ew-amount').value);
   if (!amount) { toast('أدخل المبلغ', 'error'); return; }
-  const method = document.querySelector('input[name="ew-pay-method"]:checked').value;
-  const date   = document.getElementById('ew-date').value || today();
-  const note   = document.getElementById('ew-note').value.trim();
+  const method   = document.querySelector('input[name="ew-pay-method"]:checked').value;
+  const currency = document.querySelector('input[name="ew-currency"]:checked')?.value || 'ليرة';
+  const date     = document.getElementById('ew-date').value || today();
+  const note     = document.getElementById('ew-note').value.trim();
 
   const withdrawals = DB.get(K_WITHDRAWALS);
   const idx = withdrawals.findIndex(x => x.id === wid);
   if (idx === -1) return;
   const w = withdrawals[idx];
 
-  withdrawals[idx] = { ...w, amount, method, date, note };
+  withdrawals[idx] = { ...w, amount, method, currency, date, note };
   DB.set(K_WITHDRAWALS, withdrawals);
 
   // حدّث معاملة الصندوق المرتبطة
@@ -5233,13 +5567,16 @@ window.saveEditWithdrawal = function() {
     const cash = DB.get(K_CASH);
     const ci   = cash.findIndex(c => c.id === w.cashId);
     if (ci !== -1) {
-      cash[ci] = {
-        ...cash[ci],
-        type:   method === 'بنك' ? 'bank_out' : 'out',
-        amount, date,
-        desc:   `سحب موظف: ${w.empName||''}${note ? ' — ' + note : ''}`,
-        person: w.empName || '',
-      };
+      const currLabel = currency === 'دولار' ? '💵' : '🇸🇾';
+      if (currency === 'دولار') {
+        cash[ci] = { ...cash[ci], type: 'usd_out', amount: 0, usdAmount: amount, date,
+          desc: `سحب موظف: ${w.empName||''}${note ? ' — ' + note : ''} ${currLabel}`, person: w.empName||'' };
+      } else {
+        cash[ci] = { ...cash[ci],
+          type: method === 'بنك' ? 'bank_out' : 'out',
+          amount, usdAmount: undefined, date,
+          desc: `سحب موظف: ${w.empName||''}${note ? ' — ' + note : ''} ${currLabel}`, person: w.empName||'' };
+      }
       DB.set(K_CASH, cash);
     }
   }
@@ -5821,15 +6158,21 @@ function renderCustomers() {
 function showCustomerHistory(name) {
   const repairs = DB.get(K_REPAIRS).filter(r => r.customer === name).sort((a,b) => b.date.localeCompare(a.date));
   const debts   = DB.get(K_DEBTS).filter(d => d.name === name).sort((a,b) => b.date.localeCompare(a.date));
+  // مدفوعات الصندوق المباشرة لهذا العميل (دفع ليرة أو دولار من الصندوق)
+  const cashPays = DB.get(K_CASH).filter(c =>
+    (c.person || '').trim().toLowerCase() === name.trim().toLowerCase() &&
+    (c.type === 'out' || c.type === 'usd_out' || c.type === 'bank_out')
+  ).sort((a,b) => (b.date||'').localeCompare(a.date||''));
 
   const totalPaid   = repairs.reduce((s,r) => s + +r.paid, 0);
   const totalAmount = repairs.reduce((s,r) => s + +r.total, 0);
-  const remaining   = totalAmount - totalPaid;
   const totalDebt   = debts.reduce((s,d) => s + (+d.amount - +d.paid), 0);
+  const totalCashOut = cashPays.reduce((s,c) => s + (c.type==='usd_out' ? 0 : +c.amount||0), 0);
+  const totalUsdOut  = cashPays.reduce((s,c) => s + (c.type==='usd_out' ? +c.usdAmount||0 : 0), 0);
 
   document.getElementById('cust-history-title').innerHTML = `📋 سجل العميل: <span style="color:var(--accent)">${name}</span>`;
 
-  if (repairs.length === 0 && debts.length === 0) {
+  if (repairs.length === 0 && debts.length === 0 && cashPays.length === 0) {
     document.getElementById('cust-history-content').innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>لا توجد عمليات لهذا العميل</p></div>`;
     openModal('modal-customer-history');
     return;
@@ -5853,6 +6196,20 @@ function showCustomerHistory(name) {
         <div style="font-size:10px;color:var(--text-muted)">ليرة</div>
       </div>
     </div>
+    ${(totalCashOut > 0 || totalUsdOut > 0) ? `
+    <div style="padding:0 20px;margin-bottom:14px">
+      <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:12px;display:flex;align-items:center;gap:12px">
+        <span style="font-size:20px">💸</span>
+        <div>
+          <div style="font-size:12px;color:var(--text-muted)">مدفوعات من الصندوق لهذا العميل</div>
+          <div style="font-weight:800;color:var(--danger)">
+            ${totalCashOut > 0 ? formatNum(totalCashOut) + ' ليرة' : ''}
+            ${totalCashOut > 0 && totalUsdOut > 0 ? ' + ' : ''}
+            ${totalUsdOut > 0 ? totalUsdOut.toFixed(2) + ' $' : ''}
+          </div>
+        </div>
+      </div>
+    </div>` : ''}
 
     <!-- زر نسخ الجرد -->
     <div style="padding:0 20px;margin-bottom:14px">
@@ -5872,6 +6229,11 @@ function showCustomerHistory(name) {
         style="padding:10px 20px;background:none;border:none;border-bottom:3px solid transparent;color:var(--text-muted);font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:-2px">
         📋 الديون (${debts.length})
       </button>
+      ${cashPays.length > 0 ? `
+      <button id="tab-cashpays-btn" onclick="switchCustTab('cashpays')"
+        style="padding:10px 20px;background:none;border:none;border-bottom:3px solid transparent;color:var(--text-muted);font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:-2px">
+        💸 مدفوعات (${cashPays.length})
+      </button>` : ''}
     </div>
 
     <!-- محتوى الصيانات -->
@@ -5954,6 +6316,28 @@ function showCustomerHistory(name) {
                   `).join('')}
                 </div>
               </div>` : ''}
+            </div>`;
+          }).join('')}
+    </div>
+
+    <!-- محتوى مدفوعات الصندوق -->
+    <div id="tab-cashpays-content" style="padding:0 20px 20px;display:none;flex-direction:column;gap:10px">
+      ${cashPays.length === 0
+        ? `<div style="text-align:center;color:var(--text-muted);padding:20px">لا توجد مدفوعات</div>`
+        : cashPays.map((c,i) => {
+            const isUsd = c.type === 'usd_out';
+            const amtTxt = isUsd ? `${(+c.usdAmount||0).toFixed(2)} $` : `${formatNum(c.amount)} ل`;
+            const typeLabel = isUsd ? '💵 دولار' : c.type==='bank_out' ? '🏦 بنك' : '💵 كاش';
+            return `
+            <div style="background:var(--bg-card2);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div style="font-weight:700;font-size:13px;color:var(--danger)">${amtTxt}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:3px">${c.desc||'دفع من الصندوق'}</div>
+              </div>
+              <div style="text-align:left">
+                <div style="font-size:11px;color:var(--text-muted)">${formatDate(c.date||'')}</div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:2px">${typeLabel}</div>
+              </div>
             </div>`;
           }).join('')}
     </div>
@@ -6139,25 +6523,19 @@ function showDebtHistory(id) {
 }
 
 function switchCustTab(tab) {
-  const repairsContent = document.getElementById('tab-repairs-content');
-  const debtsContent   = document.getElementById('tab-debts-content');
-  const repairsBtn     = document.getElementById('tab-repairs-btn');
-  const debtsBtn       = document.getElementById('tab-debts-btn');
-  if (tab === 'repairs') {
-    repairsContent.style.display = 'flex';
-    debtsContent.style.display   = 'none';
-    repairsBtn.style.borderBottomColor = 'var(--accent)';
-    repairsBtn.style.color             = 'var(--accent)';
-    debtsBtn.style.borderBottomColor   = 'transparent';
-    debtsBtn.style.color               = 'var(--text-muted)';
-  } else {
-    repairsContent.style.display = 'none';
-    debtsContent.style.display   = 'flex';
-    debtsBtn.style.borderBottomColor   = 'var(--accent)';
-    debtsBtn.style.color               = 'var(--accent)';
-    repairsBtn.style.borderBottomColor = 'transparent';
-    repairsBtn.style.color             = 'var(--text-muted)';
-  }
+  const tabs = ['repairs','debts','cashpays'];
+  tabs.forEach(t => {
+    const content = document.getElementById(`tab-${t}-content`);
+    const btn     = document.getElementById(`tab-${t}-btn`);
+    if (!content) return;
+    if (t === tab) {
+      content.style.display = 'flex';
+      if (btn) { btn.style.borderBottomColor = 'var(--accent)'; btn.style.color = 'var(--accent)'; btn.style.fontWeight = '700'; }
+    } else {
+      content.style.display = 'none';
+      if (btn) { btn.style.borderBottomColor = 'transparent'; btn.style.color = 'var(--text-muted)'; btn.style.fontWeight = '600'; }
+    }
+  });
 }
 
 function openAddCustomer() {
