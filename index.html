@@ -2738,6 +2738,18 @@
       <button class="modal-close" onclick="closeModal('modal-cash')">✕</button>
     </div>
     <div class="form-grid" style="grid-template-columns:1fr">
+      <!-- خيار العملة — يظهر فقط للكاش in/out -->
+      <div class="form-group" id="cash-currency-group">
+        <label>العملة</label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="cash-currency" value="TRY" checked onchange="onCashCurrencyChange()"> 🇹🇷 ليرة تركية
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="cash-currency" value="USD" onchange="onCashCurrencyChange()"> 💵 دولار
+          </label>
+        </div>
+      </div>
       <div class="form-group">
         <label>الوصف</label>
         <input type="text" id="cash-desc" placeholder="وصف المعاملة">
@@ -2747,7 +2759,7 @@
         <input type="text" id="cash-person" list="customers-list" placeholder="اسم الشخص الذي سحب المبلغ">
       </div>
       <div class="form-group">
-        <label>المبلغ (ليرة)</label>
+        <label id="cash-amount-label">المبلغ (ليرة تركية)</label>
         <input type="number" id="cash-amount" placeholder="0" min="0" step="0.5">
       </div>
       <div class="form-group">
@@ -2773,12 +2785,21 @@
     <div class="form-grid" style="grid-template-columns:1fr">
       <div class="form-group">
         <label>نوع المعاملة</label>
-        <select id="ec-type" style="width:100%;padding:8px;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;color:var(--text-main);font-family:inherit">
+        <select id="ec-type" onchange="onEditCashTypeChange()" style="width:100%;padding:8px;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;color:var(--text-main);font-family:inherit">
           <option value="in">💵 مقبوض كاش</option>
           <option value="out">💵 مدفوع كاش</option>
           <option value="bank_in">🏦 مقبوض بنك</option>
           <option value="bank_out">🏦 مدفوع بنك</option>
+          <option value="usd_in">💵 مقبوض دولار</option>
+          <option value="usd_out">💵 مدفوع دولار</option>
         </select>
+      </div>
+      <div class="form-group" id="ec-currency-group" style="display:none">
+        <label>العملة</label>
+        <div class="radio-group">
+          <label class="radio-option"><input type="radio" name="ec-currency" value="TRY" checked onchange="onEditCashCurrencyChange()"> 🇹🇷 ليرة تركية</label>
+          <label class="radio-option"><input type="radio" name="ec-currency" value="USD" onchange="onEditCashCurrencyChange()"> 💵 دولار</label>
+        </div>
       </div>
       <div class="form-group">
         <label>الوصف *</label>
@@ -2789,7 +2810,7 @@
         <input type="text" id="ec-person" list="customers-list" placeholder="اختياري">
       </div>
       <div class="form-group">
-        <label>المبلغ (ليرة) *</label>
+        <label id="ec-amount-label">المبلغ (ليرة تركية) *</label>
         <input type="number" id="ec-amount" placeholder="0" min="0" step="0.5">
       </div>
       <div class="form-group">
@@ -5003,11 +5024,33 @@ window.editCash = function(id) {
   const c = DB.get(K_CASH).find(x => x.id === id);
   if (!c) return;
   document.getElementById('ec-id').value     = id;
-  document.getElementById('ec-type').value   = c.type   || 'in';
   document.getElementById('ec-desc').value   = c.desc   || '';
   document.getElementById('ec-person').value = c.person || '';
-  document.getElementById('ec-amount').value = c.amount || '';
   document.getElementById('ec-date').value   = c.date   || today();
+
+  const isUsd  = (c.type === 'usd_in' || c.type === 'usd_out');
+  const isCash = (c.type === 'in' || c.type === 'out' || isUsd);
+
+  // ضبط نوع المعاملة في القائمة
+  const typeEl = document.getElementById('ec-type');
+  if (typeEl) typeEl.value = c.type || 'in';
+
+  // ضبط المبلغ حسب العملة
+  document.getElementById('ec-amount').value = isUsd ? (c.usdAmount || '') : (c.amount || '');
+
+  // إظهار/إخفاء خيار العملة
+  const currGrp = document.getElementById('ec-currency-group');
+  if (currGrp) currGrp.style.display = isCash ? '' : 'none';
+
+  // ضبط راديو العملة
+  const cur = isUsd ? 'USD' : 'TRY';
+  document.querySelectorAll('input[name="ec-currency"]').forEach(r => { r.checked = r.value === cur; });
+
+  // ضبط الـ label
+  const lbl = document.getElementById('ec-amount-label');
+  if (lbl) lbl.textContent = isUsd ? 'المبلغ (دولار) *' : 'المبلغ (ليرة تركية) *';
+
+  getCustomersDatalist();
   openModal('modal-edit-cash');
 };
 
@@ -5016,15 +5059,26 @@ window.saveEditCash = function() {
   const desc   = document.getElementById('ec-desc').value.trim();
   const amount = parseFloat(document.getElementById('ec-amount').value);
   if (!desc || !amount) { toast('يرجى إدخال الوصف والمبلغ', 'error'); return; }
-  const cash = DB.get(K_CASH);
-  const idx  = cash.findIndex(c => c.id === id);
+
+  let type = document.getElementById('ec-type').value;
+  // إذا كانت كاش عادي وتم اختيار USD → حوّل النوع
+  const isCash = (type === 'in' || type === 'out');
+  if (isCash) {
+    const cur = document.querySelector('input[name="ec-currency"]:checked')?.value || 'TRY';
+    if (cur === 'USD') type = type === 'in' ? 'usd_in' : 'usd_out';
+  }
+
+  const isUsd = (type === 'usd_in' || type === 'usd_out');
+  const cash  = DB.get(K_CASH);
+  const idx   = cash.findIndex(c => c.id === id);
   if (idx === -1) return;
+
   cash[idx] = {
-    ...cash[idx],
-    type:   document.getElementById('ec-type').value,
-    desc, amount,
+    ...cash[idx], type, desc,
     person: document.getElementById('ec-person').value.trim(),
     date:   document.getElementById('ec-date').value || today(),
+    amount:    isUsd ? 0     : amount,
+    usdAmount: isUsd ? amount : undefined,
   };
   DB.set(K_CASH, cash);
   closeModal('modal-edit-cash');
@@ -5033,27 +5087,104 @@ window.saveEditCash = function() {
   toast('✅ تم تحديث المعاملة');
 };
 
+function onCashCurrencyChange() {
+  const cur = document.querySelector('input[name="cash-currency"]:checked')?.value || 'TRY';
+  const lbl = document.getElementById('cash-amount-label');
+  if (lbl) lbl.textContent = cur === 'USD' ? 'المبلغ (دولار)' : 'المبلغ (ليرة تركية)';
+}
+
+function onEditCashTypeChange() {
+  const type = document.getElementById('ec-type')?.value;
+  const grp  = document.getElementById('ec-currency-group');
+  const lbl  = document.getElementById('ec-amount-label');
+  const isCash = (type === 'in' || type === 'out');
+  const isUsd  = (type === 'usd_in' || type === 'usd_out');
+  if (grp) grp.style.display = isCash ? '' : 'none';
+  if (lbl) {
+    if (isUsd) lbl.textContent = 'المبلغ (دولار) *';
+    else if (isCash) {
+      const cur = document.querySelector('input[name="ec-currency"]:checked')?.value || 'TRY';
+      lbl.textContent = cur === 'USD' ? 'المبلغ (دولار) *' : 'المبلغ (ليرة تركية) *';
+    } else lbl.textContent = 'المبلغ (ليرة تركية) *';
+  }
+  // إذا اختار usd_in/usd_out نضبط radio على USD
+  if (isUsd) {
+    const usdRadio = document.querySelector('input[name="ec-currency"][value="USD"]');
+    if (usdRadio) usdRadio.checked = true;
+  }
+}
+
+function onEditCashCurrencyChange() {
+  const cur  = document.querySelector('input[name="ec-currency"]:checked')?.value || 'TRY';
+  const type = document.getElementById('ec-type')?.value;
+  const lbl  = document.getElementById('ec-amount-label');
+  if (!lbl) return;
+  if (cur === 'USD') {
+    lbl.textContent = 'المبلغ (دولار) *';
+    // غيّر النوع تلقائياً
+    if (type === 'in')  document.getElementById('ec-type').value = 'usd_in';
+    if (type === 'out') document.getElementById('ec-type').value = 'usd_out';
+  } else {
+    lbl.textContent = 'المبلغ (ليرة تركية) *';
+    if (type === 'usd_in')  document.getElementById('ec-type').value = 'in';
+    if (type === 'usd_out') document.getElementById('ec-type').value = 'out';
+  }
+}
+
 function openAddCash(type) {
   document.getElementById('cash-type').value = type;
+  const isCash = (type === 'in' || type === 'out');
+  const isBankOut = (type === 'bank_out');
   const titles = { in:'➕ مقبوض كاش', out:'➖ مدفوع كاش', bank_in:'🏦 مقبوض بنك', bank_out:'🏦 مدفوع بنك' };
   document.getElementById('cash-modal-title').textContent = titles[type] || '➕ إضافة معاملة';
-  document.getElementById('cash-desc').value = '';
+  document.getElementById('cash-desc').value   = '';
   document.getElementById('cash-person').value = '';
   document.getElementById('cash-amount').value = '';
-  document.getElementById('cash-date').value = today();
-  document.getElementById('cash-person-group').style.display = (type === 'out' || type === 'bank_out') ? '' : 'none';
+  document.getElementById('cash-date').value   = today();
+  // خيار العملة فقط للكاش
+  const currGrp = document.getElementById('cash-currency-group');
+  if (currGrp) currGrp.style.display = isCash ? '' : 'none';
+  // reset العملة لليرة
+  const tryRadio = document.querySelector('input[name="cash-currency"][value="TRY"]');
+  if (tryRadio) { tryRadio.checked = true; onCashCurrencyChange(); }
+  // حقل الشخص للمدفوعات فقط
+  document.getElementById('cash-person-group').style.display = (type === 'out' || isBankOut) ? '' : 'none';
   getCustomersDatalist();
   openModal('modal-cash');
 }
 
 function saveCash() {
-  const desc = document.getElementById('cash-desc').value.trim();
+  const desc   = document.getElementById('cash-desc').value.trim();
   const amount = parseFloat(document.getElementById('cash-amount').value);
-  const type = document.getElementById('cash-type').value;
+  let   type   = document.getElementById('cash-type').value;
   if (!desc || !amount) { toast('يرجى إدخال الوصف والمبلغ', 'error'); return; }
-  const person = type === 'out' || type === 'bank_out' ? (document.getElementById('cash-person').value.trim() || '') : '';
+
+  const isCash = (type === 'in' || type === 'out');
+  const currency = isCash
+    ? (document.querySelector('input[name="cash-currency"]:checked')?.value || 'TRY')
+    : 'TRY';
+
+  // إذا اختار دولار على كاش عادي → غيّر النوع
+  if (isCash && currency === 'USD') {
+    type = type === 'in' ? 'usd_in' : 'usd_out';
+  }
+
+  const person = (type === 'out' || type === 'bank_out' || type === 'usd_out')
+    ? (document.getElementById('cash-person').value.trim() || '') : '';
+
+  const entry = { id: uid(), type, desc, person,
+    date: document.getElementById('cash-date').value || today(),
+    createdAt: nowTimestamp() };
+
+  if (type === 'usd_in' || type === 'usd_out') {
+    entry.amount    = 0;
+    entry.usdAmount = amount;
+  } else {
+    entry.amount = amount;
+  }
+
   const cash = DB.get(K_CASH);
-  cash.push({ id: uid(), type, desc, amount, person, date: document.getElementById('cash-date').value || today(), createdAt: nowTimestamp() });
+  cash.push(entry);
   DB.set(K_CASH, cash);
   closeModal('modal-cash');
   renderCash();
@@ -7404,6 +7535,7 @@ Object.assign(window,{
   saveRepair, toggleDebtField,
   editRepair, saveEditRepair, erToggleDebt, deleteRepair, showInvoice, printInvoice,
   openAddCash, saveCash, deleteCash, renderCash, toggleCashOutDetail, toggleBankOutDetail, openTransfer, updateTransferLabels, saveTransfer,
+  onCashCurrencyChange, onEditCashTypeChange, onEditCashCurrencyChange,
   editCash, saveEditCash,
   openDollarModal, updateDollarPreview, saveDollarOp,
   openAddDebt, editDebt, saveDebt, openPayDebt, confirmPayDebt, fillFullDebt, deleteDebt, toggleDebtGroup,
