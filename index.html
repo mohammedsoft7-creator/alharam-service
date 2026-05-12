@@ -6243,8 +6243,10 @@ function deleteDebt(id) {
 // ==================== CUSTOMERS ====================
 function renderCustomers() {
   const search = document.getElementById('cust-search').value.toLowerCase();
-  const typeF = document.getElementById('cust-type-filter').value;
-  const repairs = DB.get(K_REPAIRS);
+  const typeF  = document.getElementById('cust-type-filter').value;
+  const repairs   = DB.get(K_REPAIRS);
+  const allCash   = DB.get(K_CASH);
+  const allDebts  = DB.get(K_DEBTS);
 
   let list = DB.get(K_CUSTOMERS).filter(c => {
     if (search && !c.name.toLowerCase().includes(search) && !(c.phone||'').includes(search)) return false;
@@ -6261,22 +6263,48 @@ function renderCustomers() {
   tbody.innerHTML = list.map((c, i) => {
     const ops = repairs.filter(r => r.customer === c.name);
     const totalPaid = ops.reduce((s,r) => s + +r.paid, 0);
+
+    // مدفوعات الصندوق لهذا العميل
+    const cashPays = allCash.filter(x =>
+      (x.person||'').trim().toLowerCase() === c.name.trim().toLowerCase() &&
+      (x.type === 'out' || x.type === 'usd_out' || x.type === 'bank_out')
+    );
+    const cashTRY = cashPays.filter(x => x.type !== 'usd_out').reduce((s,x) => s + +x.amount, 0);
+    const cashUSD = cashPays.filter(x => x.type === 'usd_out').reduce((s,x) => s + +x.usdAmount, 0);
+
+    // ديون العميل
+    const debts = allDebts.filter(d => d.name === c.name);
+    const debtRem = debts.reduce((s,d) => s + (+d.amount - +d.paid), 0);
+
+    // أي نشاط = صيانات أو دفعات أو ديون
+    const hasActivity = ops.length > 0 || cashPays.length > 0 || debts.length > 0;
+
+    // بناء ملخص المبالغ
+    const summaryParts = [];
+    if (totalPaid > 0) summaryParts.push(`${formatNum(totalPaid)} ل صيانات`);
+    if (cashTRY   > 0) summaryParts.push(`${formatNum(cashTRY)} ل دفع`);
+    if (cashUSD   > 0) summaryParts.push(`${cashUSD.toFixed(2)} $ دفع`);
+    if (debtRem   > 0) summaryParts.push(`<span style="color:var(--danger)">${formatNum(debtRem)} ل دين</span>`);
+
     return `
       <tr>
         <td>${i+1}</td>
         <td>
           <strong>${c.name}</strong>
-          ${ops.length > 0 ? `<br><span style="font-size:11px;color:var(--text-muted)">${formatNum(totalPaid)} ليرة إجمالي</span>` : ''}
+          ${summaryParts.length > 0 ? `<br><span style="font-size:11px;color:var(--text-muted)">${summaryParts.join(' | ')}</span>` : ''}
         </td>
         <td>${c.phone||'-'}</td>
         <td><span class="badge ${c.type==='محل'?'badge-info':'badge-teal'}">${c.type||'زبون'}</span></td>
-        <td>${ops.length > 0 ? `<span class="badge badge-teal">${ops.length} عملية</span>` : '-'}</td>
+        <td>
+          ${ops.length > 0 ? `<span class="badge badge-teal">${ops.length} صيانة</span>` : ''}
+          ${cashPays.length > 0 ? `<span class="badge badge-warning" style="margin-top:2px">${cashPays.length} دفعة</span>` : ''}
+          ${!hasActivity ? '-' : ''}
+        </td>
         <td>
           <div style="display:flex;gap:4px">
-            ${ops.length > 0 ? `<button class="btn btn-sm btn-primary" onclick="showCustomerHistory('${c.name.replace(/'/g,"\\'")}')">📋 السجل</button>` : ''}
+            ${hasActivity ? `<button class="btn btn-sm btn-primary" onclick="showCustomerHistory('${c.name.replace(/'/g,"\\'")}')">📋 السجل</button>` : ''}
             <button class="btn btn-sm btn-secondary" onclick="editCustomer('${c.id}')">✏️</button>
             <button class="btn btn-sm btn-danger" onclick="askDeleteCustomer('${c.id}')">🗑️</button>
-
           </div>
         </td>
       </tr>
