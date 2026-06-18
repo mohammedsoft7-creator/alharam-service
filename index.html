@@ -732,6 +732,10 @@
     margin-top: 20px;
     padding-top: 16px;
     border-top: 1px solid var(--border);
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-card);
+    z-index: 5;
   }
 
   /* ===== TOAST ===== */
@@ -1024,13 +1028,50 @@
     .section-header .btn { font-size: 12px; padding: 7px 12px; }
 
     /* — Tables — */
-    .table-wrap { border-radius: 10px; -webkit-overflow-scrolling: touch; }
+    .table-wrap {
+      border-radius: 10px;
+      -webkit-overflow-scrolling: touch;
+      position: relative;
+    }
+    /* تلميح بصري للتمرير: ظل خفيف على الحافة يدل أن في محتوى إضافي */
+    .table-wrap::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0; left: 0;
+      width: 14px;
+      background: linear-gradient(to left, transparent, rgba(0,0,0,0.18));
+      pointer-events: none;
+    }
     table th, table td {
-      padding: 8px 9px !important;
+      padding: 9px 9px !important;
       font-size: 11.5px !important;
       white-space: nowrap;
     }
     table th { font-size: 11px !important; }
+
+    /* عمود الإجراءات (آخر عمود) — يثبت على الحافة المرئية كي لا يختفي بالتمرير */
+    table td:last-child, table th:last-child {
+      position: sticky;
+      left: 0;
+      z-index: 3;
+      background: var(--bg-card);
+      box-shadow: -8px 0 10px -6px rgba(0,0,0,0.35);
+    }
+    table tbody tr:nth-child(even) td:last-child { background: var(--bg-card2); }
+
+    /* أزرار الإجراءات داخل الجداول والبطاقات — مساحة لمس أكبر وفراغ أوسع */
+    table td:last-child .btn-sm,
+    .btn-sm {
+      min-height: 36px;
+      min-width: 36px;
+      padding: 8px 12px !important;
+      font-size: 12px !important;
+    }
+    table td:last-child > div[style*="display:flex"],
+    table td > div[style*="display:flex"] {
+      gap: 8px !important;
+      flex-wrap: nowrap;
+    }
 
     /* — Forms — */
     .form-grid { grid-template-columns: 1fr !important; gap: 10px; }
