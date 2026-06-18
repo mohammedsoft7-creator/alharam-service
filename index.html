@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#c9960c">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -966,11 +966,19 @@
     #sidebar { display: none !important; }
     #main {
       margin-right: 0 !important;
-      overflow-x: visible !important; /* إصلاح: يمنع تعطيل التمرير العمودي على iOS */
-      overflow-y: visible !important;
+      overflow: visible !important; /* إصلاح: يمنع حجب التمرير العمودي على iOS */
+      min-height: unset !important; /* إصلاح: 100vh يُربك iOS في تحديد scroll container */
+      height: auto !important;
     }
-    html, body {
-      overflow-y: auto !important; /* يضمن التمرير العمودي دائماً */
+    #content {
+      min-height: unset !important; /* إصلاح: يتسبب في إخفاء المحتوى عن نطاق التمرير */
+    }
+    html {
+      overflow-y: scroll !important; /* body هو scroll container الصريح */
+      height: auto !important;
+    }
+    body {
+      overflow-y: scroll !important;
       height: auto !important;
     }
     #mobile-bottom-nav { display: block; }
@@ -987,7 +995,8 @@
     .header-meta { gap: 6px; }
 
     #content {
-      padding: 12px 12px 76px;
+      padding: 12px 12px 100px; /* زيادة المسافة السفلية لضمان ظهور الزر فوق nav */
+      touch-action: pan-y !important; /* يضمن التمرير العمودي اللمسي */
     }
 
     /* — Dashboard grids — */
@@ -4108,6 +4117,10 @@ function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   pageEl.classList.add('active');
+  // إعادة التمرير للأعلى عند تغيير الصفحة (مهم على الجوال)
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
 
   const map = {
     'dashboard':'الصفحة الرئيسية','new-repair':'تسجيل صيانة جديدة',
