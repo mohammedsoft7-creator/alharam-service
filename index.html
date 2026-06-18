@@ -83,6 +83,8 @@
     color: var(--text-main);
     min-height: 100vh;
     direction: rtl;
+    overflow-y: auto;   /* يضمن التمرير العمودي */
+    -webkit-overflow-scrolling: touch; /* تمرير سلس على iOS */
   }
 
   /* ===== SIDEBAR ===== */
@@ -182,7 +184,7 @@
   #main {
     margin-right: var(--sidebar-w);
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow-x: clip; /* clip لا ينشئ scroll container مثل hidden */
   }
 
   #header {
@@ -962,7 +964,15 @@
 
     /* — Layout — */
     #sidebar { display: none !important; }
-    #main { margin-right: 0 !important; }
+    #main {
+      margin-right: 0 !important;
+      overflow-x: visible !important; /* إصلاح: يمنع تعطيل التمرير العمودي على iOS */
+      overflow-y: visible !important;
+    }
+    html, body {
+      overflow-y: auto !important; /* يضمن التمرير العمودي دائماً */
+      height: auto !important;
+    }
     #mobile-bottom-nav { display: block; }
 
     #header {
@@ -1326,7 +1336,7 @@
     .btn:hover { transform: none !important; }
     .nav-item:hover { padding-right: 12px !important; }
     * { -webkit-tap-highlight-color: transparent; }
-    body { overscroll-behavior-y: contain; }
+    /* overscroll-behavior-y: contain أُزيل لأنه يتسبب في تعطيل التمرير على بعض الجوالات */
   }
 </style>
 </head>
