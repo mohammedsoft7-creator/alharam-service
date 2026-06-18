@@ -182,8 +182,6 @@
   #main {
     margin-right: var(--sidebar-w);
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
     overflow-x: hidden;
   }
 
@@ -270,10 +268,9 @@
   }
 
   #content {
-    flex: 1;
     padding: 28px;
-    overflow-y: auto;
     position: relative;
+    min-height: calc(100vh - var(--header-h));
   }
   .page { position: relative; z-index: 1; }
 
