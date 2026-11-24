@@ -1,4 +1,4 @@
-name: Application and Firestore rules checks
+name: Application, Auth and Firestore checks
 on:
   push:
     branches: [main]
@@ -25,3 +25,4 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm test
       - run: npm run test:rules
+      - run: npm run test:auth

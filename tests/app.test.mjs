@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import * as core from '../app-core.mjs';
+import * as accountSecurity from '../account-security.mjs';
 
 const source = fs.readFileSync(new URL('../app.js', import.meta.url), 'utf8');
 const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
@@ -22,7 +23,7 @@ function harness({ failCommit = false } = {}) {
   const ref = (...parts) => ({ path: parts.slice(1).join('/') });
   const read = ref => ({ exists: () => records.has(ref.path), data: () => core.clone(records.get(ref.path)) });
   const context = {
-    ...core, console: { log() {}, warn() {}, error() {} },
+    ...core, ...accountSecurity, console: { log() {}, warn() {}, error() {} },
     initializeApp: () => ({}), getFirestore: () => ({}), getAuth: () => ({ currentUser: { uid: 'u1', email: 'test@example.test' } }),
     doc: ref, collection: ref, getDoc: async ref => read(ref), getDocs: async () => ({ docs: [] }),
     writeBatch: () => {
@@ -51,6 +52,7 @@ function harness({ failCommit = false } = {}) {
     onSnapshot: (ref, options, callback, error) => { listeners.push({ ref, options, callback, error }); return () => {}; }, signOut: async () => {}, onAuthStateChanged() {},
     signInWithEmailAndPassword() {}, createUserWithEmailAndPassword() {}, sendPasswordResetEmail() {},
     EmailAuthProvider: { credential: () => ({}) }, reauthenticateWithCredential: async () => {},
+    updatePassword: async () => {}, validatePassword: async () => ({ isValid: true }),
     document: { getElementById: element, querySelector: selector => selector.includes(':checked') ? { value: 'كاش' } : null,
       querySelectorAll: () => [], createElement: () => element('created-' + fields.size), addEventListener() {} },
     navigator: {}, localStorage: { getItem() {}, setItem() {} },
@@ -62,7 +64,8 @@ function harness({ failCommit = false } = {}) {
   vm.runInContext(source.replace(/^import [\s\S]*?;\s*/gm, '').replace('Object.assign(window,{', 'Object.assign(globalThis.__exposed,{') + `
     globalThis.api = { DB, cache, loadedCollections, writer, commitDebtPayment, saveRepair, saveCustomer,
       renderCustomers, showCustomerHistory, htmlJSArg, startListeners, activeActions, toast, saveSettings,
-      importBackup, exportBackup, closeModal, saveExpense, expenseCashId, deleteRepair, linkedCash, activateAccount, openAuthorizedSession };
+      importBackup, exportBackup, closeModal, saveExpense, expenseCashId, deleteRepair, linkedCash, activateAccount, openAuthorizedSession,
+      auth, adminAccounts, getAuthMode: () => authMode };
   `, context);
   core.COLLECTIONS.concat('settings').forEach(key => context.api.loadedCollections.add(key));
   return { ...context.api, records, batches, element, messages, listeners, context };
@@ -366,4 +369,81 @@ test('login never creates or reactivates an ordinary user registry', async () =>
   assert.equal(app.records.has('users_registry/u1'), false);
   assert.equal(app.batches.length, 0);
   assert.match(app.element('l-err').textContent, /غير مفعّل/);
+});
+
+test('signup password confirmation is checked before creating an account', async () => {
+  const app = harness(); let created = 0;
+  app.context.createUserWithEmailAndPassword = async () => { created++; };
+  for (const [id, value] of Object.entries({ 'l-email': 'new@example.test', 'l-pass': 'New-password-123', 'l-pass-confirm': 'different', 'l-actcode': 'ABCD1234' })) app.element(id).value = value;
+  await app.context.doSignup();
+  assert.equal(created, 0); assert.match(app.element('l-err').textContent, /غير متطابقتين/);
+});
+
+test('Enter routes to signup or reset according to the visible authentication view', async () => {
+  const app = harness(); const calls = [];
+  app.context.doSignup = () => calls.push('signup');
+  app.context.doLogin = () => calls.push('login');
+  app.context.requestLoginPasswordReset = () => calls.push('reset');
+  app.context.toggleSignup(true); app.context.submitAuthForm();
+  assert.equal(app.getAuthMode(), 'signup');
+  app.context.openPasswordRecovery(); app.context.submitAuthForm();
+  assert.equal(app.element('l-password-section').style.display, 'none');
+  app.context.toggleSignup(false); app.context.submitAuthForm();
+  assert.deepEqual(calls, ['signup', 'reset', 'login']);
+});
+
+test('successful password change reauthenticates first, clears secrets, signs out and preserves account data', async () => {
+  const app = harness(); const calls = [];
+  app.records.set('users/u1/repairs/r1', { id: 'r1', paid: 20 });
+  app.context.reauthenticateWithCredential = async user => { calls.push('reauth:' + user.uid); };
+  app.context.updatePassword = async user => { calls.push('update:' + user.uid); };
+  app.context.signOut = async () => { calls.push('signout'); };
+  app.element('account-current-password').value = 'Old-password-123';
+  app.element('account-new-password').value = 'New-password-456';
+  app.element('account-confirm-password').value = 'New-password-456';
+  await app.context.saveAccountPassword();
+  assert.deepEqual(calls, ['reauth:u1', 'update:u1', 'signout']);
+  assert.equal(app.records.get('users/u1/repairs/r1').paid, 20);
+  assert.equal(app.element('account-current-password').value, '');
+  assert.equal(app.element('account-new-password').value, '');
+  assert.equal(app.element('account-confirm-password').value, '');
+  assert.match(app.element('l-notice').textContent, /تم تغيير/);
+  assert.equal(app.element('l-email').value, 'test@example.test');
+});
+
+test('wrong current password leaves the password and sign-in state untouched', async () => {
+  const app = harness(); let updated = 0, signedOut = 0;
+  app.context.reauthenticateWithCredential = async () => { throw { code: 'auth/invalid-credential' }; };
+  app.context.updatePassword = async () => { updated++; };
+  app.context.signOut = async () => { signedOut++; };
+  app.element('account-current-password').value = 'Wrong-old-password';
+  app.element('account-new-password').value = 'New-password-456';
+  app.element('account-confirm-password').value = 'New-password-456';
+  await app.context.saveAccountPassword();
+  assert.equal(updated, 0); assert.equal(signedOut, 0);
+  assert.match(app.element('account-password-message').textContent, /الحالية غير صحيحة/);
+  assert.equal(app.element('account-current-password').value, '');
+});
+
+test('recovery does not reveal account existence and sends each address only once during cooldown', async () => {
+  const app = harness(); const sent = [];
+  app.context.sendPasswordResetEmail = async (auth, email, options) => { sent.push({ email, url: options.url }); throw { code: 'auth/user-not-found' }; };
+  app.element('l-email').value = 'Unknown@Example.test';
+  await app.context.requestLoginPasswordReset(); await app.context.requestLoginPasswordReset();
+  assert.deepEqual(sent, [{ email: 'unknown@example.test', url: 'https://alhram.online/' }]);
+  assert.match(app.element('l-notice').textContent, /إذا كان البريد مسجلاً/);
+  assert.equal(app.element('l-err').textContent, '');
+});
+
+test('administrator reset is restricted to the verified owner and registered target', async () => {
+  const app = harness(); let sent = 0;
+  app.context.sendPasswordResetEmail = async () => { sent++; };
+  app.adminAccounts.set('target', { uid: 'target', email: 'target@example.test' });
+  await app.context.adminResetPassword('target'); assert.equal(sent, 0);
+  const owner = source.match(/const OWNER_UID = '([^']+)'/)[1]; app.auth.currentUser.uid = owner;
+  app.records.set('users_registry/target', { uid: 'target', email: 'target@example.test', active: true });
+  await app.context.adminResetPassword('target');
+  assert.equal(app.element('confirm-ok').textContent, 'إرسال الرابط');
+  await app.element('confirm-ok').onclick();
+  assert.equal(sent, 1); assert.equal(app.batches.length, 0);
 });

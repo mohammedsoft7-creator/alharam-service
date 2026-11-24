@@ -1,10 +1,12 @@
 import { initializeApp }    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, collection, doc, writeBatch, runTransaction, onSnapshot, getDocs, getDoc }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential }
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential, updatePassword, validatePassword }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 import { COLLECTIONS, clone, roundMoney, positiveMoney, escapeHTML, paymentBalance, validateBackup, createWriteQueue, createDeleteCredential, verifyDeleteCredential } from './app-core.mjs';
+
+import { accountErrorMessage, accountValidation, normalizedEmail, checkNewPassword, changeOwnPassword, createPasswordResetSender } from './account-security.mjs';
 
 // ── Config ──────────────────────────────────────────────
 const app  = initializeApp({
@@ -17,6 +19,9 @@ const app  = initializeApp({
 });
 const fdb  = getFirestore(app);
 const auth = getAuth(app);
+auth.languageCode = 'ar';
+const requestAccountReset = createPasswordResetSender(email => sendPasswordResetEmail(auth, email, { url: 'https://alhram.online/' }));
+const adminAccounts = new Map();
 
 // ── Cache (in-memory mirror of Firestore) ───────────────
 const cache = { repairs:[], cash_transactions:[], debts:[], customers:[], settings:{}, faults:[], expenses:[], exp_categories:[], employees:[], withdrawals:[], debt_payments:[] };
@@ -374,10 +379,112 @@ window.askDeleteExpense = function(id) {
 // -- اختيار الوحدة --
 // ==================== COLLAPSIBLE NAV ====================
 
-window.toggleSignup = function(show) {
-  document.getElementById('l-login-form').style.display = show ? 'none' : 'block';
-  document.getElementById('l-signup-form').style.display = show ? 'block' : 'none';
-  document.getElementById('l-err').textContent = '';
+let authMode = 'login';
+let loginInProgress = false;
+function setAccountMessage(id, message, error = false) {
+  const field = document.getElementById(id);
+  if (!field) return;
+  field.textContent = message;
+  field.dataset.state = error ? 'error' : 'success';
+  field.setAttribute('role', error ? 'alert' : 'status');
+}
+function clearAccountPasswordFields() {
+  ['account-current-password', 'account-new-password', 'account-confirm-password'].forEach(id => {
+    const field = document.getElementById(id); if (field) { field.value = ''; field.type = 'password'; }
+  });
+  document.querySelectorAll('#modal-account-password [data-password-toggle]').forEach(button => {
+    button.textContent = 'إظهار'; button.setAttribute('aria-pressed', 'false');
+  });
+}
+function clearLoginPasswords() {
+  ['l-pass', 'l-pass-confirm'].forEach(id => { const field = document.getElementById(id); if (field) { field.value = ''; field.type = 'password'; } });
+  document.querySelectorAll('#s-login [data-password-toggle]').forEach(button => { button.textContent = 'إظهار'; button.setAttribute('aria-pressed', 'false'); });
+}
+function resetAuthLoginSurface() {
+  authMode = 'login';
+  document.getElementById('l-login-form').style.display = 'block';
+  document.getElementById('l-signup-form').style.display = 'none';
+  document.getElementById('l-reset-form').style.display = 'none';
+  document.getElementById('l-password-section').style.display = 'block';
+  document.getElementById('l-pass').setAttribute('autocomplete', 'current-password');
+}
+function setAuthMode(mode) {
+  if (signupInProgress || loginInProgress || activeActions.has('auth-reset')) return;
+  if (!['login', 'signup', 'reset'].includes(mode)) return;
+  if (mode !== authMode) clearLoginPasswords();
+  authMode = mode;
+  document.getElementById('l-login-form').style.display = mode === 'login' ? 'block' : 'none';
+  document.getElementById('l-signup-form').style.display = mode === 'signup' ? 'block' : 'none';
+  document.getElementById('l-reset-form').style.display = mode === 'reset' ? 'block' : 'none';
+  document.getElementById('l-password-section').style.display = mode === 'reset' ? 'none' : 'block';
+  document.getElementById('l-pass').setAttribute('autocomplete', mode === 'signup' ? 'new-password' : 'current-password');
+  setAccountMessage('l-err', ''); setAccountMessage('l-notice', '');
+}
+window.toggleSignup = show => setAuthMode(show ? 'signup' : 'login');
+window.openPasswordRecovery = () => { setAuthMode('reset'); document.getElementById('l-email').focus(); };
+window.togglePasswordVisibility = function(id, button) {
+  const field = document.getElementById(id); if (!field || !['password', 'text'].includes(field.type)) return;
+  const visible = field.type === 'password'; field.type = visible ? 'text' : 'password';
+  button.textContent = visible ? 'إخفاء' : 'إظهار'; button.setAttribute('aria-pressed', String(visible));
+};
+window.submitAuthForm = function() {
+  if (authMode === 'signup') return doSignup();
+  if (authMode === 'reset') return requestLoginPasswordReset();
+  return doLogin();
+};
+window.requestLoginPasswordReset = async function() {
+  return saveAction('auth-reset', '#l-reset-form button', async () => {
+    setAccountMessage('l-err', ''); setAccountMessage('l-notice', '');
+    try {
+      await requestAccountReset(document.getElementById('l-email').value);
+      setAccountMessage('l-notice', 'إذا كان البريد مسجلاً، سيصلك رابط لتغيير كلمة المرور. تفقد البريد غير المرغوب فيه أيضًا، ثم ارجع لتسجيل الدخول.');
+    } catch (error) { setAccountMessage('l-err', accountErrorMessage(error), true); }
+  });
+};
+window.openAccountPassword = function() {
+  if (!auth.currentUser?.email) { toast('سجّل الدخول أولاً', 'error'); return; }
+  if (writer.pending || activeActions.size) { toast('انتظر اكتمال الحفظ أولاً', 'info'); return; }
+  clearAccountPasswordFields(); setAccountMessage('account-password-message', '');
+  document.getElementById('account-password-email').textContent = auth.currentUser.email;
+  openModal('modal-account-password'); document.getElementById('account-current-password').focus();
+};
+window.saveAccountPassword = async function() {
+  return saveAction('change-account-password', '#modal-account-password button', async () => {
+    setAccountMessage('account-password-message', '');
+    if (writer.pending || activeActions.size > 1) { setAccountMessage('account-password-message', 'انتظر اكتمال العمليات الأخرى أولاً.', true); return; }
+    let changed;
+    try {
+      changed = await changeOwnPassword({ auth,
+        currentPassword: document.getElementById('account-current-password').value,
+        newPassword: document.getElementById('account-new-password').value,
+        confirmation: document.getElementById('account-confirm-password').value,
+        validatePassword, credential: EmailAuthProvider.credential,
+        reauthenticate: reauthenticateWithCredential, updatePassword });
+    } catch (error) {
+      document.getElementById('account-current-password').value = '';
+      setAccountMessage('account-password-message', accountErrorMessage(error, true), true); return;
+    }
+    clearAccountPasswordFields(); closeModal('modal-account-password');
+    stopListeners(); authGateSequence++;
+    Object.keys(cache).forEach(key => { cache[key] = Array.isArray(cache[key]) ? [] : {}; });
+    document.getElementById('profit-section-content').style.display = 'none';
+    clearInterval(_tickerTimer); _tickerTimer = null; clearLoginPasswords();
+    try { await signOut(auth); }
+    catch { setAccountMessage('l-err', 'تغيّرت كلمة المرور، لكن تعذر إغلاق الجلسة؛ أعد تحميل الصفحة وسجّل الدخول بالكلمة الجديدة.', true); }
+    showLogin(); document.getElementById('l-email').value = changed.email;
+    // No mode switch is needed while the save action is locked; select the login surface directly.
+    resetAuthLoginSurface();
+    setAccountMessage('l-notice', 'تم تغيير كلمة المرور. سجّل الدخول بالكلمة الجديدة؛ بيانات حسابك محفوظة.');
+  });
+};
+window.sendOwnPasswordReset = async function() {
+  return saveAction('own-password-reset', '#account-security-card button', async () => {
+    try {
+      if (!auth.currentUser?.email) throw accountValidation('سجّل الدخول أولاً.');
+      await requestAccountReset(auth.currentUser.email);
+      setAccountMessage('account-security-message', 'طُلب إرسال رابط التغيير إلى بريد حسابك. تفقد بريدك والبريد غير المرغوب فيه.');
+    } catch (error) { setAccountMessage('account-security-message', accountErrorMessage(error), true); }
+  });
 };
 
 let signupInProgress = false;
@@ -402,15 +509,19 @@ window.doSignup = async function() {
   if (signupInProgress) return;
   const email = document.getElementById('l-email').value.trim();
   const password = document.getElementById('l-pass').value;
+  const confirmation = document.getElementById('l-pass-confirm').value;
   const shopName = document.getElementById('l-shopname').value.trim();
   const code = document.getElementById('l-actcode').value.trim().toUpperCase();
   const button = document.getElementById('l-signup-btn'), error = document.getElementById('l-err');
   error.textContent = '';
+  if (password !== confirmation) { error.textContent = 'كلمتا المرور غير متطابقتين.'; return; }
   if (!email || password.length < 6 || !/^[A-Z0-9]{8}$/.test(code)) {
     error.textContent = 'أدخل البريد وكلمة مرور من 6 أحرف على الأقل وكود تفعيل من 8 خانات'; return;
   }
   signupInProgress = true; button.disabled = true; button.textContent = 'جارٍ التحقق والتفعيل…';
   try {
+    normalizedEmail(email);
+    await checkNewPassword(auth, password, confirmation, validatePassword);
     let credential;
     try { credential = await createUserWithEmailAndPassword(auth, email, password); }
     catch (failure) {
@@ -419,12 +530,13 @@ window.doSignup = async function() {
       credential = await signInWithEmailAndPassword(auth, email, password);
     }
     await activateAccount(credential.user, code, shopName);
+    clearLoginPasswords();
     await openAuthorizedSession(credential.user);
   } catch (failure) {
     await signOut(auth).catch(() => {});
     showLogin();
     const messages = { 'auth/invalid-credential': 'البريد أو كلمة المرور غير صحيحة', 'auth/invalid-email': 'البريد غير صالح', 'permission-denied': 'تعذر التفعيل: الكود غير صالح أو مستخدم', 'auth/network-request-failed': 'تحقق من اتصال الإنترنت' };
-    error.textContent = messages[failure.code] || failure.message || 'تعذر إكمال التفعيل؛ أعد المحاولة بنفس البريد والكود';
+    error.textContent = messages[failure.code] || (failure.code ? accountErrorMessage(failure) : failure.message) || 'تعذر إكمال التفعيل؛ أعد المحاولة بنفس البريد والكود';
   } finally {
     signupInProgress = false; button.disabled = false; button.textContent = 'إنشاء الحساب وتفعيله';
   }
@@ -475,7 +587,9 @@ window.loadRegisteredUsers = async function() {
       getDocs(collection(fdb, 'users_registry')),
       getDocs(collection(fdb, 'activation_codes'))
     ]);
-    const users = usersSnap.docs.map(d => d.data()).sort((a,b) => (a.createdAt||'').localeCompare(b.createdAt||''));
+    if (auth.currentUser?.uid !== OWNER_UID) return;
+    const users = usersSnap.docs.map(d => ({ ...d.data(), uid: d.id })).sort((a,b) => (a.createdAt||'').localeCompare(b.createdAt||''));
+    adminAccounts.clear(); users.forEach(user => adminAccounts.set(user.uid, user));
     // بناء map: email → code
     const emailToCode = {};
     codesSnap.docs.forEach(d => {
@@ -495,19 +609,19 @@ window.loadRegisteredUsers = async function() {
           <div style="flex:1">
             <div style="font-weight:700;font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
               ${isMe?'👑 ':''}<span style="direction:ltr;unicode-bidi:embed">${escapeHTML(u.email)}</span>
-              ${usedCode ? `<span style="background:rgba(201,150,12,0.15);border:1px solid rgba(201,150,12,0.3);color:#c9960c;padding:2px 8px;border-radius:6px;font-size:10px;letter-spacing:2px;font-family:monospace">${usedCode}</span>` : ''}
+              ${usedCode ? `<span style="background:rgba(201,150,12,0.15);border:1px solid rgba(201,150,12,0.3);color:#c9960c;padding:2px 8px;border-radius:6px;font-size:10px;letter-spacing:2px;font-family:monospace">${escapeHTML(usedCode)}</span>` : ''}
             </div>
             <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
-              ${u.shopName ? `🏪 ${escapeHTML(u.shopName)} &nbsp;|&nbsp;` : ''}📅 ${date}
+              ${u.shopName ? `🏪 ${escapeHTML(u.shopName)} &nbsp;|&nbsp;` : ''}📅 ${escapeHTML(date)}
             </div>
           </div>
           ${isMe ? `<span class="badge badge-warning">المالك</span>` : `
-          <div style="display:flex;gap:6px;flex-shrink:0">
-            <button onclick="adminResetPassword('${escapeHTML(u.email)}')"
+          <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">
+            <button onclick="adminResetPassword(${htmlJSArg(u.uid)})"
               style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);color:#818cf8;padding:5px 10px;border-radius:7px;cursor:pointer;font-size:11px;font-weight:700;font-family:inherit">
-              🔑 إعادة كلمة السر
+              📧 رابط تغيير كلمة المرور
             </button>
-            <button onclick="adminDeleteUser(${htmlJSArg(u.uid)},'${escapeHTML(u.email)}')"
+            <button onclick="adminDeleteUser(${htmlJSArg(u.uid)},${htmlJSArg(u.email)})"
               style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:var(--danger);padding:5px 10px;border-radius:7px;cursor:pointer;font-size:11px;font-weight:700;font-family:inherit">
               🗑️ حذف
             </button>
@@ -519,21 +633,24 @@ window.loadRegisteredUsers = async function() {
   }
 };
 
-window.adminResetPassword = async function(email) {
-  if (auth.currentUser?.uid !== OWNER_UID) return;
-  document.getElementById('confirm-message').textContent = `إرسال رابط إعادة تعيين كلمة السر إلى:\n${email}`;
-  document.getElementById('confirm-ok').textContent = '📧 إرسال الرابط';
-  document.getElementById('confirm-ok').onclick = async () => {
-    closeModal('modal-confirm');
+window.adminResetPassword = async function(userId) {
+  if (auth.currentUser?.uid !== OWNER_UID) { toast('غير مصرّح', 'error'); return; }
+  const account = adminAccounts.get(userId);
+  if (!account?.email) { toast('حدّث قائمة الحسابات ثم اختر الحساب المطلوب.', 'error'); return; }
+  document.getElementById('confirm-message').textContent = `إرسال رابط تغيير كلمة المرور إلى ${account.email}؟ يختار صاحب البريد كلمته الجديدة بنفسه. هذا الإجراء لا يغيّر حالة تفعيل الحساب.`;
+  document.getElementById('confirm-ok').onclick = () => saveAction('admin-password-reset', '#modal-confirm button', async () => {
     try {
-      await sendPasswordResetEmail(auth, email);
-      toast(`✅ تم إرسال رابط إعادة كلمة السر إلى ${email}`, 'success');
-    } catch(e) {
-      toast('❌ ' + (e.message||'خطأ في الإرسال'), 'error');
-    }
-    document.getElementById('confirm-ok').textContent = 'تأكيد';
-  };
+      if (auth.currentUser?.uid !== OWNER_UID) throw accountValidation('غير مصرّح.');
+      const current = await getDoc(doc(fdb, 'users_registry', userId));
+      if (!current.exists() || current.data().email !== account.email) throw accountValidation('تغيّر سجل الحساب؛ حدّث القائمة وأعد المحاولة.');
+      if (auth.currentUser?.uid !== OWNER_UID) throw accountValidation('تغيّر الحساب؛ أعد تسجيل الدخول.');
+      await requestAccountReset(account.email);
+      closeModal('modal-confirm'); toast('طُلب إرسال رابط التغيير إلى بريد صاحب الحساب. لا يتم تغيير كلمة المرور إلا بعد استخدام الرابط.');
+    } catch (error) { toast(accountErrorMessage(error), 'error'); }
+  });
   openModal('modal-confirm');
+  document.getElementById('confirm-ok').textContent = 'إرسال الرابط';
+  document.getElementById('confirm-ok').style.background = '';
 };
 
 window.adminDeleteUser = async function(uid2, email) {
@@ -615,29 +732,19 @@ window.deleteCode = async function(code) {
   loadActivationCodes();
 };
 
-window.doLogin = function(){
-  const email = document.getElementById('l-email').value.trim();
-  const pass  = document.getElementById('l-pass').value;
-  const btn   = document.getElementById('l-btn');
-  const err   = document.getElementById('l-err');
-  if (!email || !pass) { err.textContent = '❌ أدخل الإيميل وكلمة المرور'; return; }
-  err.textContent = ''; btn.disabled = true; btn.textContent = '⏳ جاري الدخول...';
-  signInWithEmailAndPassword(auth, email, pass)
-    .then(() => {
-      // The auth observer opens the app only after checking the server registry.
-    })
-    .catch(e => {
-      const msgs = {
-        'auth/user-not-found':   '❌ الإيميل غير مسجّل',
-        'auth/wrong-password':   '❌ كلمة المرور خاطئة',
-        'auth/invalid-email':    '❌ إيميل غير صحيح',
-        'auth/invalid-credential': '❌ الإيميل أو كلمة المرور خاطئة',
-        'auth/too-many-requests':'❌ محاولات كثيرة — انتظر قليلاً',
-        'auth/network-request-failed': '❌ تحقق من اتصال الإنترنت',
-      };
-      err.textContent = msgs[e.code] || '❌ خطأ: ' + e.message;
-      btn.disabled = false; btn.textContent = '🔐 دخول';
-    });
+window.doLogin = async function() {
+  if (loginInProgress || signupInProgress || activeActions.has('auth-reset')) return;
+  const password = document.getElementById('l-pass').value;
+  const button = document.getElementById('l-btn');
+  setAccountMessage('l-err', ''); setAccountMessage('l-notice', '');
+  try {
+    const email = normalizedEmail(document.getElementById('l-email').value);
+    if (!password) throw accountValidation('أدخل كلمة المرور.');
+    loginInProgress = true; button.disabled = true; button.textContent = 'جارٍ الدخول…';
+    await signInWithEmailAndPassword(auth, email, password);
+    clearLoginPasswords();
+  } catch (error) { setAccountMessage('l-err', accountErrorMessage(error), true); }
+  finally { loginInProgress = false; button.disabled = false; button.textContent = 'دخول'; }
 };
 window.doLogout=async function(){
   if (writer.pending || activeActions.size) { toast('انتظر اكتمال الحفظ قبل تسجيل الخروج', 'info'); return; }
@@ -788,6 +895,7 @@ function openModal(id) {
 
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
+  if (id === 'modal-account-password') clearAccountPasswordFields();
   if (id === 'modal-delete-pass' && !_deleteConfirmed) _pendingDeleteFn = null;
 }
 
@@ -3879,6 +3987,8 @@ const OWNER_EMAIL = 'mohammed.soft7@gmail.com';
 const OWNER_UID = 'fz6uNoWQRWXqOD0LZuIAsozmqFB3';
 
 function loadSettings() {
+  document.getElementById('account-security-email').textContent = auth.currentUser?.email || '';
+  setAccountMessage('account-security-message', '');
   const s = DB.getObj(K_SETTINGS, {});
   document.getElementById('set-shop-name').value    = s.shopName    || '';
   document.getElementById('set-shop-phone').value   = s.shopPhone   || '';
@@ -4159,7 +4269,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     onAuthStateChanged(auth, user => {
       if (signupInProgress) return;
       if (user) { void openAuthorizedSession(user); return; }
-      authGateSequence++; stopListeners();
+      authGateSequence++; stopListeners(); resetAuthLoginSurface(); clearLoginPasswords(); clearAccountPasswordFields(); adminAccounts.clear();
       Object.keys(cache).forEach(key => { cache[key] = Array.isArray(cache[key]) ? [] : {}; });
       document.getElementById('profit-section-content').style.display = 'none';
       document.getElementById('l-btn').disabled = false;
@@ -4259,7 +4369,8 @@ Object.assign(window,{
   loadRegisteredUsers, adminResetPassword, adminDeleteUser,
   loadDelRepairs, loadDelCash, loadDelDebts, loadDelCustomers, loadDelEmployees, loadDelExpenses,
   delSelectedRepair, delSelectedCash, delSelectedDebt, delSelectedCustomer, delSelectedEmployee, delSelectedExpense,
-  doLogin, doLogout, shiftMonth,
+  doLogin, doLogout, shiftMonth, setAuthMode, submitAuthForm, openPasswordRecovery, requestLoginPasswordReset,
+  togglePasswordVisibility, openAccountPassword, saveAccountPassword, sendOwnPasswordReset,
   selectFaultChip, saveFault, deleteFault, openFaultsMgr,
   openAddEmployee, editEmployee, saveEmployee, deleteEmployee, toggleEmployeeCard,
   openEmpWithdraw, saveEmpWithdraw, deleteEmpWithdrawal,

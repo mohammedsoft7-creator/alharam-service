@@ -1359,3 +1359,26 @@ tbody tr:hover { background: var(--bg-card2); }
 body[data-theme="dark-blue"] .btn-primary { background: linear-gradient(135deg, #e2b347, #c9960c); }
 body[data-theme="dark-blue"] .btn-primary:hover { box-shadow: 0 4px 16px rgba(201,150,12,.25); }
 @media (max-width: 640px) { .header-meta > #sync-status { display: inline-flex !important; } }
+
+/* Account access and password controls */
+#s-login { overflow-x: hidden !important; overflow-y: auto !important; align-items: flex-start !important; padding: 32px 16px; }
+#s-login .auth-shell { flex-shrink: 0; margin-block: auto; }
+.auth-password-row { display: flex; align-items: stretch; gap: 8px; min-width: 0; }
+.auth-password-row input { flex: 1; min-width: 0; }
+.auth-password-row button { flex: 0 0 auto; padding: 6px 10px; border: 1px solid var(--border); border-radius: 10px; color: var(--text-main); background: var(--bg-card2); font: inherit; font-size: 12px; }
+.auth-control { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-dark); color: var(--text-main); font: inherit; }
+.auth-field { margin-bottom: 16px; }
+.auth-field label { display: block; margin-bottom: 6px; font-size: 13px; color: #e2b347; }
+.auth-link { background: transparent; border: 0; padding: 8px; color: #e2b347; font: inherit; font-size: 13px; cursor: pointer; }
+.account-hint { font-size: 13px; line-height: 1.8; color: var(--text-muted); margin: 8px 0 14px; }
+.account-message { font-size: 13px; line-height: 1.8; margin: 10px 0; overflow-wrap: anywhere; color: var(--success); }
+.account-message:empty { display: none; }
+.account-message[data-state="error"] { color: var(--danger); }
+.account-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+#s-login .account-hint { color: #a3aec2; }
+#s-login .auth-password-row button { color: #e2b347; }
+#s-login .account-message { margin-bottom: 16px; }
+@media (max-width: 640px) {
+  #s-login { padding: 28px 12px; }
+  .account-actions > button { flex: 1 1 100%; }
+}
