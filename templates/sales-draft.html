@@ -1,0 +1,322 @@
+<!-- Archived pre-existing, unimplemented sales dialogs. Not loaded by the app. -->
+<div class="modal-overlay" id="modal-product">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-header">
+      <div class="modal-title" id="product-modal-title">➕ إضافة منتج</div>
+      <button class="modal-close" onclick="closeModal('modal-product')">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>اسم المنتج *</label>
+        <input type="text" id="prod-name" placeholder="مثال: Samsung Galaxy A54">
+      </div>
+      <div class="form-group">
+        <label>التصنيف</label>
+        <select id="prod-cat">
+          <option value="جوالات">📱 جوالات</option>
+          <option value="اكسسوار">🎧 اكسسوار</option>
+          <option value="قطع غيار">🔩 قطع غيار</option>
+          <option value="شواحن">🔌 شواحن</option>
+          <option value="سماعات">🎵 سماعات</option>
+          <option value="حماية شاشة">🛡️ حماية شاشة</option>
+          <option value="بطاريات">🔋 بطاريات</option>
+          <option value="كابلات">🔗 كابلات</option>
+          <option value="حواسب">💻 حواسب</option>
+          <option value="أخرى">📦 أخرى</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>الماركة</label>
+        <input type="text" id="prod-brand" placeholder="Samsung, Apple, Xiaomi...">
+      </div>
+      <div class="form-group">
+        <label>الموديل</label>
+        <input type="text" id="prod-model" placeholder="Galaxy A54, iPhone 15...">
+      </div>
+      <div class="form-group">
+        <label>اللون</label>
+        <input type="text" id="prod-color" placeholder="أسود، أبيض، أزرق...">
+      </div>
+      <div class="form-group">
+        <label>الباركود</label>
+        <input type="text" id="prod-barcode" placeholder="رقم الباركود أو SKU">
+      </div>
+      <div class="form-group">
+        <label>الكمية</label>
+        <input type="number" id="prod-qty" placeholder="0" min="0">
+      </div>
+      <div class="form-group">
+        <label>حد التنبيه (نفاد المخزون)</label>
+        <input type="number" id="prod-min-qty" placeholder="2" min="0" value="2">
+      </div>
+      <div class="form-group">
+        <label>سعر الشراء (ليرة) *</label>
+        <input type="number" id="prod-cost" placeholder="0" min="0">
+      </div>
+      <div class="form-group">
+        <label>سعر البيع (ليرة) *</label>
+        <input type="number" id="prod-price" placeholder="0" min="0">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label>الوصف</label>
+        <input type="text" id="prod-desc" placeholder="وصف إضافي...">
+      </div>
+    </div>
+    <input type="hidden" id="prod-edit-id">
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-product')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveProduct()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Adjust Stock Modal -->
+<div class="modal-overlay" id="modal-adjust-stock">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <div class="modal-title">📊 تعديل المخزون</div>
+      <button class="modal-close" onclick="closeModal('modal-adjust-stock')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="adj-product-id">
+      <div id="adj-product-name" style="font-weight:700;margin-bottom:14px;font-size:14px"></div>
+      <div class="form-group">
+        <label>نوع التعديل</label>
+        <div style="display:flex;gap:10px">
+          <label style="cursor:pointer;background:var(--bg-card2);padding:8px 14px;border-radius:8px;border:1px solid var(--border);font-size:13px"><input type="radio" name="adj-type" value="add" checked> ➕ إضافة</label>
+          <label style="cursor:pointer;background:var(--bg-card2);padding:8px 14px;border-radius:8px;border:1px solid var(--border);font-size:13px"><input type="radio" name="adj-type" value="remove"> ➖ خصم</label>
+          <label style="cursor:pointer;background:var(--bg-card2);padding:8px 14px;border-radius:8px;border:1px solid var(--border);font-size:13px"><input type="radio" name="adj-type" value="set"> 🔢 تعيين</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>الكمية *</label>
+        <input type="number" id="adj-qty" placeholder="0" min="0">
+      </div>
+      <div class="form-group">
+        <label>السبب (اختياري)</label>
+        <input type="text" id="adj-reason" placeholder="تالف، جرد، تصحيح...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-adjust-stock')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveStockAdjust()">✅ تطبيق</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Purchase Modal -->
+<div class="modal-overlay" id="modal-purchase">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-header">
+      <div class="modal-title">🚚 تسجيل مشتريات</div>
+      <button class="modal-close" onclick="closeModal('modal-purchase')">✕</button>
+    </div>
+    <div class="form-grid" style="grid-template-columns:1fr 1fr">
+      <div class="form-group">
+        <label>المورد</label>
+        <input type="text" id="purch-supplier" list="suppliers-list" placeholder="اسم المورد">
+        <datalist id="suppliers-list"></datalist>
+      </div>
+      <div class="form-group">
+        <label>التاريخ</label>
+        <input type="date" id="purch-date">
+      </div>
+      <div class="form-group">
+        <label>طريقة الدفع</label>
+        <div class="radio-group">
+          <label class="radio-option"><input type="radio" name="purch-pay" value="كاش" checked> 💵 كاش</label>
+          <label class="radio-option"><input type="radio" name="purch-pay" value="بنك"> 🏦 بنك</label>
+          <label class="radio-option"><input type="radio" name="purch-pay" value="آجل"> 📋 آجل</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>ملاحظات</label>
+        <input type="text" id="purch-note" placeholder="ملاحظات اختيارية">
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">المنتجات المشتراة:</div>
+      <div id="purch-items-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>
+      <button class="btn btn-secondary btn-sm" onclick="addPurchaseItem()">➕ إضافة منتج</button>
+    </div>
+    <div style="text-align:left;font-size:15px;font-weight:800;color:var(--danger)">
+      الإجمالي: <span id="purch-total-display">0</span> ل
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-purchase')">إلغاء</button>
+      <button class="btn btn-primary" onclick="savePurchase()">💾 حفظ المشتريات</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sales Cash Manual Transaction Modal -->
+<div class="modal-overlay" id="modal-sales-cash">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">💵 إضافة معاملة يدوية</div>
+      <button class="modal-close" onclick="closeModal('modal-sales-cash')">✕</button>
+    </div>
+    <div class="form-grid" style="grid-template-columns:1fr">
+      <div class="form-group">
+        <label>النوع</label>
+        <div class="radio-group">
+          <label class="radio-option"><input type="radio" name="sc-type" value="in" checked> ↑ قبض</label>
+          <label class="radio-option"><input type="radio" name="sc-type" value="out"> ↓ دفع</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>العملة</label>
+        <div class="radio-group">
+          <label class="radio-option"><input type="radio" name="sc-currency" value="SYP" checked> 💵 ليرة</label>
+          <label class="radio-option"><input type="radio" name="sc-currency" value="USD"> 🇺🇸 دولار</label>
+          <label class="radio-option"><input type="radio" name="sc-currency" value="EUR"> 🇪🇺 يورو</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>المبلغ *</label>
+        <input type="number" id="sc-amount" placeholder="0" min="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>الوصف</label>
+        <input type="text" id="sc-desc" placeholder="وصف المعاملة">
+      </div>
+      <div class="form-group">
+        <label>التاريخ</label>
+        <input type="date" id="sc-date">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-sales-cash')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveSalesCashManual()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Supplier Modal -->
+<div class="modal-overlay" id="modal-supplier">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="supplier-modal-title">➕ إضافة مورد</div>
+      <button class="modal-close" onclick="closeModal('modal-supplier')">✕</button>
+    </div>
+    <div class="form-grid" style="grid-template-columns:1fr">
+      <div class="form-group">
+        <label>اسم المورد *</label>
+        <input type="text" id="supplier-name" placeholder="اسم الشركة أو المورد">
+      </div>
+      <div class="form-group">
+        <label>رقم الهاتف</label>
+        <input type="text" id="supplier-phone" placeholder="05xxxxxxxx">
+      </div>
+      <div class="form-group">
+        <label>ملاحظات</label>
+        <input type="text" id="supplier-note" placeholder="عنوان أو ملاحظات">
+      </div>
+    </div>
+    <input type="hidden" id="supplier-edit-id">
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-supplier')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveSupplier()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Sales Employee Modal -->
+<div class="modal-overlay" id="modal-sales-employee">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title" id="sales-emp-modal-title">➕ إضافة موظف مبيعات</div>
+      <button class="modal-close" onclick="closeModal('modal-sales-employee')">✕</button>
+    </div>
+    <div class="form-grid" style="grid-template-columns:1fr 1fr">
+      <div class="form-group" style="grid-column:1/-1">
+        <label>اسم الموظف *</label>
+        <input type="text" id="sales-emp-name" placeholder="الاسم الكامل">
+      </div>
+      <div class="form-group">
+        <label>رقم الهاتف</label>
+        <input type="text" id="sales-emp-phone" placeholder="05xxxxxxxx">
+      </div>
+      <div class="form-group">
+        <label>الوظيفة</label>
+        <select id="sales-emp-role" style="width:100%;padding:8px 10px;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;color:var(--text-main);font-size:13px;font-family:inherit">
+          <option value="">-- الوظيفة --</option>
+          <option value="مدير">مدير</option>
+          <option value="بائع">بائع</option>
+          <option value="محاسب">محاسب</option>
+          <option value="مستودع">مستودع</option>
+          <option value="أخرى">أخرى</option>
+        </select>
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label>الراتب الأساسي</label>
+        <div style="display:flex;gap:8px">
+          <input type="number" id="sales-emp-salary" placeholder="0" min="0" style="flex:1">
+          <select id="sales-emp-salary-currency" style="width:100px;padding:8px 10px;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;color:var(--text-main);font-size:13px;font-family:inherit">
+            <option value="ليرة">🇸🇾 ليرة</option>
+            <option value="دولار">🇺🇸 دولار</option>
+            <option value="يورو">🇪🇺 يورو</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>السلف المتراكمة</label>
+        <input type="number" id="sales-emp-advances" placeholder="0" min="0">
+      </div>
+      <div class="form-group">
+        <label>الحوافز</label>
+        <input type="number" id="sales-emp-bonus" placeholder="0" min="0">
+      </div>
+    </div>
+    <input type="hidden" id="sales-emp-edit-id">
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-sales-employee')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveSalesEmployee()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sales Employee Withdraw Modal -->
+<div class="modal-overlay" id="modal-sales-withdraw">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title" id="sales-withdraw-title">💸 تسجيل سحب</div>
+      <button class="modal-close" onclick="closeModal('modal-sales-withdraw')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="sales-withdraw-emp-id">
+      <div class="form-group">
+        <label>المبلغ *</label>
+        <div style="display:flex;gap:8px">
+          <input type="number" id="sales-withdraw-amount" placeholder="0" min="0" style="flex:1">
+          <select id="sales-withdraw-currency" style="width:110px;padding:8px 10px;background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;color:var(--text-main);font-size:13px;font-family:inherit">
+            <option value="ليرة">🇸🇾 ليرة</option>
+            <option value="دولار">🇺🇸 دولار</option>
+            <option value="يورو">🇪🇺 يورو</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>طريقة الدفع</label>
+        <div class="radio-group">
+          <label class="radio-option"><input type="radio" name="sales-emp-pay" value="كاش" checked> 💵 كاش</label>
+          <label class="radio-option"><input type="radio" name="sales-emp-pay" value="بنك"> 🏦 بنك</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>التاريخ</label>
+        <input type="date" id="sales-withdraw-date">
+      </div>
+      <div class="form-group">
+        <label>ملاحظة (اختياري)</label>
+        <input type="text" id="sales-withdraw-note" placeholder="مثال: راتب، سلفة، عمولة...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-sales-withdraw')">إلغاء</button>
+      <button class="btn btn-danger" id="sales-withdraw-save-btn" onclick="saveSalesWithdraw()">💾 تسجيل السحب</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Repair Modal -->

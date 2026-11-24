@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    // Deployment is blocked until this is replaced with the verified Firebase Auth UID.
+    function isOwner() { return signedIn() && request.auth.uid == 'fz6uNoWQRWXqOD0LZuIAsozmqFB3'; }
+    function registryPath(uid) { return /databases/$(database)/documents/users_registry/$(uid); }
+    function codePath(code) { return /databases/$(database)/documents/activation_codes/$(code); }
+    function activeAccount(uid) {
+      return signedIn() && request.auth.uid == uid &&
+        exists(registryPath(uid)) && get(registryPath(uid)).data.active == true;
+    }
+    function activeAccountAfter(uid) {
+      return signedIn() && request.auth.uid == uid &&
+        getAfter(registryPath(uid)).data.active == true;
+    }
+    function knownCollection(name) {
+      return name in ['repairs', 'cash_transactions', 'debts', 'customers', 'settings',
+        'faults', 'expenses', 'exp_categories', 'employees', 'withdrawals', 'debt_payments'];
+    }
+    function nonNegative(data, field) {
+      return !(field in data) ||
+        (data[field] is number && data[field] >= 0 && data[field] <= 999999999999) ||
+        (data[field] is string && data[field].matches('^[0-9]{1,12}(\\.[0-9]{1,2})?$'));
+    }
+    function validData(kind, id) {
+      let data = request.resource.data;
+      return (!('id' in data) || data.id == id) &&
+        nonNegative(data, 'amount') && nonNegative(data, 'paid') &&
+        nonNegative(data, 'partsCost') && nonNegative(data, 'usdAmount') &&
+        nonNegative(data, 'debtAmount') && nonNegative(data, 'total') &&
+        (kind != 'debts' || !(data.amount is number && data.paid is number) || data.paid <= data.amount) &&
+        (kind != 'debt_payments' || (data.amount is number && data.amount > 0));
+    }
+    match /users/{uid}/{kind}/{id} {
+      allow read: if knownCollection(kind) && (isOwner() || activeAccount(uid));
+      allow create, update: if knownCollection(kind) && (kind != 'settings' || id == 'main') &&
+        (isOwner() || activeAccountAfter(uid)) && validData(kind, id);
+      allow delete: if knownCollection(kind) && (isOwner() || activeAccount(uid));
+    }
+    match /users_registry/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || isOwner());
+      allow list: if isOwner();
+      allow create: if isOwner() || (
+        signedIn() && request.auth.uid == uid &&
+        request.resource.data.keys().hasOnly(['uid', 'email', 'shopName', 'createdAt', 'active', 'activationCode']) &&
+        request.resource.data.uid == uid && request.resource.data.email == request.auth.token.email &&
+        request.resource.data.active == true && request.resource.data.shopName is string &&
+        request.resource.data.createdAt is string && request.resource.data.activationCode is string &&
+        exists(codePath(request.resource.data.activationCode)) &&
+        get(codePath(request.resource.data.activationCode)).data.used == false &&
+        getAfter(codePath(request.resource.data.activationCode)).data.used == true &&
+        getAfter(codePath(request.resource.data.activationCode)).data.usedByUid == uid
+      );
+      allow update: if isOwner() || (activeAccount(uid) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['shopName']) &&
+        request.resource.data.shopName is string);
+      allow delete: if isOwner();
+    }
+    match /activation_codes/{code} {
+      allow get: if isOwner() || (signedIn() &&
+        (resource.data.used == false || resource.data.get('usedByUid', '') == request.auth.uid));
+      allow list, create, delete: if isOwner();
+      allow update: if isOwner() || (
+        signedIn() && resource.data.used == false && request.resource.data.used == true &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['used', 'usedBy', 'usedByUid', 'usedAt']) &&
+        request.resource.data.usedByUid == request.auth.uid &&
+        request.resource.data.usedBy == request.auth.token.email && request.resource.data.usedAt is string &&
+        !exists(registryPath(request.auth.uid)) &&
+        getAfter(registryPath(request.auth.uid)).data.active == true &&
+        getAfter(registryPath(request.auth.uid)).data.activationCode == code
+      );
+    }
+    // All legacy root collections, unknown collections and nested paths are denied.
+    match /{document=**} { allow read, write: if false; }
+  }
+}

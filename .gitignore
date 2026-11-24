@@ -1,0 +1,9 @@
+backups/
+release/
+__pycache__/
+*.log
+.tooling/
+.upstream/
+.firebase/
+deployment-private/
+node_modules/
